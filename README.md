@@ -6,6 +6,8 @@
 
 Hedieaty is a mobile application designed to make gift list management effortless and enjoyable. Whether it’s for birthdays, weddings, engagements, graduations, or holidays, Hedieaty helps users create, organize, and share wish lists with friends and family. The app enhances the joy of gift-giving by simplifying the process of pledging and tracking gifts.
 
+For the Figma design [Click Here](https://www.figma.com/design/b8JKGFD6cZHkXyxaYwPCr3/Hediety?node-id=0-1&t=5wT2YjkXVoErMREn-1)
+
 ---
 
 ## **Features**

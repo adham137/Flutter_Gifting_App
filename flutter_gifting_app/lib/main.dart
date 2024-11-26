@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'features/home/home_page.dart';
+import 'screens/home_screen.dart';
+import 'screens/my_events_screen.dart';
 
 void main() {
   runApp(HedieatyApp());
@@ -15,7 +16,7 @@ class HedieatyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => HomePage(),
+        '/': (context) => MyEventsScreen(),
 
         // Add more routes as needed
       },

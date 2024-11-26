@@ -1,0 +1,2 @@
+Individual screen implementations
+* Home screen does not use the constant fonts and colours
