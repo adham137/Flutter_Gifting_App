@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'screens/home_screen.dart';
 import 'screens/my_events_screen.dart';
+import 'screens/my_pledged_gifts_screen.dart';
+import 'screens/parent_page.dart';
 
 void main() {
   runApp(HedieatyApp());
@@ -10,16 +13,14 @@ class HedieatyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hedieaty',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => MyEventsScreen(),
+      title: 'Hediety App',
 
-        // Add more routes as needed
-      },
+      theme: ThemeData(
+        primarySwatch: Colors.purple,
+      ),
+
+      home: ParentPage(),
+
     );
   }
 }

@@ -7,6 +7,8 @@ class AppFonts {
     color: Colors.black87,
   );
 
+  static const subtitle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+
   static const TextStyle body = TextStyle(
     fontSize: 16,
     color: Colors.black87,

@@ -93,7 +93,6 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.purple,
         child: Icon(Icons.person_add),
       ),
-      bottomNavigationBar: BottomNavBar(),
     );
   }
 }

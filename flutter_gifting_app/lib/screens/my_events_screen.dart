@@ -83,11 +83,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {},                                       //
         backgroundColor: AppColors.primary,
         child: Icon(Icons.add),
       ),
-      bottomNavigationBar: BottomNavBar(),
+
     );
   }
 
