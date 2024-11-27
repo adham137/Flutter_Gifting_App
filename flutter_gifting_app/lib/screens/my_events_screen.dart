@@ -75,6 +75,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                     date: index == 0 ? '15/9/2025' : '13/7/2025',
                     time: index == 0 ? '8:00 PM' : '12:00 AM',
                     status: index == 0 ? 'Current' : 'Upcoming',
+                    onDelete: () => {},
+                    onEdit: () => {} ,
+                    onView: () => {},
                   );
                 },
               ),

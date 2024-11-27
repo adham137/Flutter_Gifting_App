@@ -4,6 +4,8 @@ import '../utils/fonts.dart';
 
 class EventCard extends StatelessWidget {
   final String name, title, location, date, time, status;
+  final VoidCallback onDelete, onEdit, onView;
+  final String? avatarPath; // Optional for a dynamic avatar
 
   EventCard({
     required this.name,
@@ -12,12 +14,16 @@ class EventCard extends StatelessWidget {
     required this.date,
     required this.time,
     required this.status,
+    required this.onDelete,
+    required this.onEdit,
+    required this.onView,
+    this.avatarPath, // Optional parameter for avatar
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -26,7 +32,10 @@ class EventCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/avatar.png'),
+                  backgroundImage: avatarPath != null
+                      ? AssetImage(avatarPath!)
+                      : AssetImage('assets/avatar.png'),
+                  radius: 20,
                 ),
                 SizedBox(width: 8),
                 Text(name, style: AppFonts.body),
@@ -49,26 +58,26 @@ class EventCard extends StatelessWidget {
             Text(location, style: AppFonts.body),
             SizedBox(height: 4),
             Text('$date - $time', style: AppFonts.body),
-            SizedBox(height: 8),
+            SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onDelete,
                   child: Text('Delete'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onEdit,
                   child: Text('Edit'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onView,
                   child: Text('View'),
                 ),
               ],
