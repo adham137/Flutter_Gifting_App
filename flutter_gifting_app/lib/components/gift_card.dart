@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import 'action_button.dart';
+
 class GiftCard extends StatelessWidget {
   final String recipientName;
   final String recipientImage;
@@ -32,6 +33,7 @@ class GiftCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header Section
             Row(
               children: [
                 CircleAvatar(
@@ -53,7 +55,10 @@ class GiftCard extends StatelessWidget {
                 StatusBadge(status: status),
               ],
             ),
+
             const SizedBox(height: 10),
+
+            // Gift Details Section
             Row(
               children: [
                 Icon(Icons.card_giftcard, color: AppColors.primary),
@@ -64,12 +69,39 @@ class GiftCard extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 10),
+
+            // Action Buttons Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                ActionButton(label: "Edit", color: Colors.blue),
-                ActionButton(label: "Delete", color: Colors.red),
+                ActionButton(
+                  label: "Edit",
+                  color: Colors.blue,
+                  onPressed: () {
+                    // Add Edit Logic Here
+                  },
+                ),
+                ActionButton(
+                  label: "Delete",
+                  color: Colors.red,
+                  onPressed: () {
+                    // Add Delete Logic Here
+                  },
+                ),
+                ActionButton(
+                  label: status == "Available" ? "Pledge" : "Unpledge",
+                  color: status == "Available" ? Colors.green : Colors.orange,
+                  onPressed: () {
+                    // Add Pledge/Unpledge Logic Here
+                    if (status == "Available") {
+                      // Logic to pledge the gift
+                    } else {
+                      // Logic to unpledge the gift
+                    }
+                  },
+                ),
               ],
             ),
           ],

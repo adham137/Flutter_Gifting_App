@@ -4,7 +4,8 @@ import '../utils/fonts.dart';
 
 class EventCard extends StatelessWidget {
   final String name, title, location, date, time, status;
-  final VoidCallback onDelete, onEdit, onView;
+  final VoidCallback? onDelete, onEdit;
+  final VoidCallback onView;
   final String? avatarPath; // Optional for a dynamic avatar
 
   EventCard({
@@ -14,8 +15,8 @@ class EventCard extends StatelessWidget {
     required this.date,
     required this.time,
     required this.status,
-    required this.onDelete,
-    required this.onEdit,
+    this.onDelete,
+    this.onEdit,
     required this.onView,
     this.avatarPath, // Optional parameter for avatar
   });
@@ -62,24 +63,28 @@ class EventCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
+
+                this.onDelete != null ? ElevatedButton(
                   onPressed: onDelete,
                   child: Text('Delete'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: onEdit,
-                  child: Text('Edit'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                  ),
-                ),
+                ) : Container(),
+
                 ElevatedButton(
                   onPressed: onView,
                   child: Text('View'),
                 ),
+
+                this.onEdit != null ? ElevatedButton(
+                  onPressed: onEdit,
+                  child: Text('Edit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                  ) 
+                ): Container(),
+                
               ],
             ),
           ],

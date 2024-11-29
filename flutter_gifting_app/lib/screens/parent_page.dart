@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'my_pledged_gifts_screen.dart';
-import 'my_events_screen.dart'; 
+import 'events_screen.dart'; 
 import 'home_screen.dart'; 
 import 'my_profile_screen.dart';
 
@@ -18,7 +18,7 @@ class _HomePageState extends State<ParentPage> {
   // List of pages corresponding to the bottom navigation tabs
   final List<Widget> _pages = [
     HomeScreen(),
-    MyEventsScreen(),
+    EventsScreen(),
     MyPledgedGiftsPage(),
     ProfilePage(), 
   ];

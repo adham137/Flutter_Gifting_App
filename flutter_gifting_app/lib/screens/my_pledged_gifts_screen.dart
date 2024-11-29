@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 
-import '../components/bottom_nav_bar.dart';
 import '../components/gift_card.dart ';
 import '../components/search_bar.dart';
 import '../components/sort_options.dart';

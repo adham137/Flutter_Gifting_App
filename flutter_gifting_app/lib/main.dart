@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
-import 'screens/my_events_screen.dart';
+// import 'screens/my_events_screen.dart';
 import 'screens/my_pledged_gifts_screen.dart';
 import 'screens/parent_page.dart';
 
