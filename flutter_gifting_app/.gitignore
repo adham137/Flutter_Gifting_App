@@ -32,6 +32,9 @@ migrate_working_dir/
 /build/
 node_modules/
 
+# Secrets
+lib/firebase_options.dart
+
 # Symbolication related
 app.*.symbols
 
