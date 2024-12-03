@@ -20,7 +20,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Account created successfully! ... Signing you in.')),
       );
@@ -29,7 +29,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      
       Navigator.pushNamedAndRemoveUntil(
         context,
         '/parent',
