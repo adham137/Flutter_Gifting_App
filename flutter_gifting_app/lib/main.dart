@@ -31,7 +31,7 @@ class HedieatyApp extends StatelessWidget {
           : '/parent',
       routes: {
         '/parent': (context) => ParentPage(),
-        '/home': (context) => HomeScreen(),
+        //'/home': (context) => HomeScreen(),
         '/sign-in': (context) => SignInScreen(),
         '/sign-up': (context) => SignUpScreen(),
         '/pledged-gifts': (context) => MyPledgedGiftsPage(),
