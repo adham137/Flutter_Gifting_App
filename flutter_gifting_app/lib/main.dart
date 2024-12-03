@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'screens/home_screen.dart';
-// import 'screens/my_events_screen.dart';
+import 'screens/signin_screen.dart';
+import 'screens/signup_screen.dart';
 import 'screens/my_pledged_gifts_screen.dart';
 import 'screens/parent_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  //if (FirebaseAuth.instance.currentUser == null)
+  await Firebase.initializeApp();
   runApp(HedieatyApp());
 }
 
@@ -14,13 +22,20 @@ class HedieatyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hediety App',
-
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-
-      home: ParentPage(),
-
+      // Define initial route based on Firebase authentication state
+      initialRoute: FirebaseAuth.instance.currentUser == null
+          ? '/sign-in'
+          : '/parent',
+      routes: {
+        '/parent': (context) => ParentPage(),
+        '/home': (context) => HomeScreen(),
+        '/sign-in': (context) => SignInScreen(),
+        '/sign-up': (context) => SignUpScreen(),
+        '/pledged-gifts': (context) => MyPledgedGiftsPage(),
+      },
     );
   }
 }

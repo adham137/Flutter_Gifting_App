@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import '../components/event_card.dart'; // Import EventCard widget
 
 class ProfilePage extends StatelessWidget {
+  
+  /////////////////////////////////////////////////////////// Sign-out method
+  void _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/sign-in',
+        (route) => false, // Remove all previous routes
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+  ///////////////////////////////////////////////////////////
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,6 +121,26 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 24),
+            // Sign-Out Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ElevatedButton(
+                onPressed: () => _signOut(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Red for sign-out
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  "Sign Out",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
           ],
         ),
       ),
