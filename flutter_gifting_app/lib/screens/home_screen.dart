@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../components/add_friend_modal.dart';
 import '../components/friend_card.dart';
 import '../models/user.dart';
+import '../components/sort_options.dart'; // Import SortOptions
 
 class HomeScreen extends StatefulWidget {
   final String userId;
@@ -16,8 +17,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<UserModel> friends = [];
   List<Map<String, dynamic>> friendRequests = [];
-  List<UserModel> filteredFriends = []; // For search functionality
+  List<UserModel> filteredFriends = [];
   TextEditingController searchController = TextEditingController();
+
+  String? selectedSort;
 
   @override
   void initState() {
@@ -25,9 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadFriends();
     _loadFriendRequests();
 
-    // Initialize filtered friends with the full list
+    // Attach listener to searchController
     searchController.addListener(() {
-      _filterFriends();
+      _filterAndSortFriends();
     });
   }
 
@@ -40,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
       setState(() {
         friends = friendDocs.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
-        filteredFriends = friends; // Set initial filtered friends
+        filteredFriends = friends; // Initialize filtered list
       });
     }
   }
@@ -85,13 +88,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _filterFriends() {
+  void _filterAndSortFriends() {
     final query = searchController.text.toLowerCase();
+
     setState(() {
+      // Filter friends based on search query
       filteredFriends = friends
           .where((friend) => friend.name.toLowerCase().contains(query))
           .toList();
-    });
+
+      // // Apply sorting if selected
+      // if (selectedSort != null) {
+      //   switch (selectedSort) {
+      //     case "Name":
+      //       filteredFriends.sort((a, b) => a.name.compareTo(b.name));
+      //       break;
+      //     case "Category":
+      //       filteredFriends.sort((a, b) => a.category.compareTo(b.category));
+      //       break;
+      //     case "Status":
+      //       filteredFriends.sort((a, b) => a.status.compareTo(b.status));
+      //       break;
+      //   }
+      // }
+    }
+    );
   }
 
   @override
@@ -177,6 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
+            // Search Bar
             TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -184,6 +206,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.search),
               ),
+            ),
+            SizedBox(height: 8),
+            // Sort Options
+            SortOptions(
+              selectedSort: selectedSort,
+              onSortSelected: (sort) {
+                setState(() {
+                  selectedSort = sort;
+                  _filterAndSortFriends();
+                });
+              },
             ),
             SizedBox(height: 8),
             Expanded(

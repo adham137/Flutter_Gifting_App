@@ -2,14 +2,124 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import '../components/event_card.dart';
-import 'my_event.dart';
+import 'event_details.dart';
+import '../components/search_bar.dart';
+import '../components/sort_options.dart';
+
 class EventsScreen extends StatefulWidget {
   @override
   _EventsScreenState createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends State<EventsScreen> {
+  final TextEditingController searchController = TextEditingController();
+  String? selectedSort;
   bool isMyEventsSelected = true;
+
+  // Dummy data for events
+  List<Map<String, dynamic>> events = [];
+  List<Map<String, dynamic>> filteredEvents = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDummyData();
+    _filterAndSortEvents();
+    searchController.addListener(_filterAndSortEvents);
+  }
+
+  void _loadDummyData() {
+    // Load dummy data for "My Events" and "Friends Events"
+    events = [
+      // My Events
+      {
+        "name": "Adham Yasser",
+        "title": "Grad",
+        "location": "Ain Shams University",
+        "date": "15/9/2025",
+        "time": "8:00 PM",
+        "status": "Current",
+        "isMine": true,
+      },
+      {
+        "name": "Adham Yasser",
+        "title": "My Birthday",
+        "location": "McDonalds El-Serag",
+        "date": "13/7/2025",
+        "time": "12:00 AM",
+        "status": "Upcoming",
+        "isMine": true,
+      },
+      // Friends' Events
+      {
+        "name": "Ziad",
+        "title": "Ziad's Birthday",
+        "location": "New Giza, Egypt",
+        "date": "13/7/2025",
+        "time": "12:00 AM",
+        "status": "Upcoming",
+        "isMine": false,
+      },
+      {
+        "name": "Ahmed",
+        "title": "Birthday",
+        "location": "Cairo, Egypt",
+        "date": "24/10/2024",
+        "time": "8:00 PM",
+        "status": "Current",
+        "isMine": false,
+      },
+      {
+        "name": "Mohamed",
+        "title": "Promotion",
+        "location": "New Giza, Egypt",
+        "date": "13/7/2025",
+        "time": "12:00 AM",
+        "status": "Upcoming",
+        "isMine": false,
+      },
+    ];
+    // Initially, filteredEvents should contain all the events
+    filteredEvents = List.from(events);
+  }
+
+  void _filterAndSortEvents() {
+    final query = searchController.text.toLowerCase();
+
+    setState(() {
+      // Filter based on search and toggle
+      filteredEvents = events
+          .where((event) {
+            final isMatchingTab = isMyEventsSelected == event["isMine"];
+            final matchesSearch = event["name"].toLowerCase().contains(query) ||
+                event["title"].toLowerCase().contains(query);
+            return isMatchingTab && matchesSearch;
+          })
+          .toList();
+
+      // Sort based on selected option
+      if (selectedSort != null) {
+        filteredEvents.sort((a, b) {
+          switch (selectedSort) {
+            case "Category": // Assuming "Category" is related to "status"
+              return a["status"].compareTo(b["status"]);
+            case "Name":
+              return a["name"].compareTo(b["name"]);
+            case "Status":
+              return a["status"].compareTo(b["status"]);
+            default:
+              return 0;
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,79 +142,53 @@ class _EventsScreenState extends State<EventsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Search Bar
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search for events',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
+            MySearchBar(controller: searchController),
             SizedBox(height: 16),
-            // Sort By Options
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Sort By',
-                  style: AppFonts.body,
-                ),
-                DropdownButton<String>(
-                  items: ['Category', 'Name', 'Status']
-                      .map((e) => DropdownMenuItem<String>(
-                            value: e,
-                            child: Text(e),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    // Handle sorting logic
-                  },
-                  hint: Text('Category'),
-                ),
-              ],
+            // Sort Options
+            SortOptions(
+              selectedSort: selectedSort,
+              onSortSelected: (sort) {
+                setState(() {
+                  selectedSort = sort;
+                  _filterAndSortEvents();
+                });
+              },
             ),
             SizedBox(height: 16),
             // Event List
             Expanded(
-              child: ListView.builder(
-                itemCount: 3, // Replace with dynamic friend data length
-                itemBuilder: (context, index) {
-                  if (isMyEventsSelected) {
-                    // My Events Data
-                    return EventCard(
-                      name: 'Adham Yasser',
-                      title: index == 0 ? 'Grad' : 'My Birthday',
-                      location: index == 0
-                          ? 'Ain Shams University'
-                          : 'McDonalds El-Serag',
-                      date: index == 0 ? '15/9/2025' : '13/7/2025',
-                      time: index == 0 ? '8:00 PM' : '12:00 AM',
-                      status: index == 0 ? 'Current' : 'Upcoming',
-                      onDelete: () => {},
-                      onEdit: () => {},
-                      onView: () => {Navigator.push(context, MaterialPageRoute(builder: (context) => MyEventPage(eventName: "Birthday",eventDate: "13/7/2025",eventTime: "12:30", eventLocation: "Nasr City",eventDescription: "eidmilady el 23",)))},//Navigator.push(context, MaterialPageRoute(builder: (context) => MyEventPage()))
-                    );
-                  } else {
-                    // Friends Events Data
-                    return EventCard(
-                      name: index == 0 ? 'Ahmed' : 'Mohamed', // Friend's name
-                      title: index == 0 ? 'Birthday' : 'Promotion',
-                      location: index == 0 ? 'Cairo, Egypt' : 'New Giza, Egypt',
-                      date: index == 0 ? '24/10/2024' : '13/7/2025',
-                      time: index == 0 ? '8:00 PM' : '12:00 AM',
-                      status: index == 0 ? 'Current' : 'Upcoming',
-                      onDelete: null, // No delete button
-                      onEdit: null, // No edit button
-                      
-                      onView: () {
-                        // Handle "View" action
-                        
+              child: filteredEvents.isEmpty
+                  ? Center(child: Text("No events found"))
+                  : ListView.builder(
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = filteredEvents[index];
+                        return EventCard(
+                          name: event["name"],
+                          title: event["title"],
+                          location: event["location"],
+                          date: event["date"],
+                          time: event["time"],
+                          status: event["status"],
+                          onDelete: event["isMine"] ? () {} : null,
+                          onEdit: event["isMine"] ? () {} : null,
+                          onView: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyEventPage(
+                                  eventName: event["title"],
+                                  eventDate: event["date"],
+                                  eventTime: event["time"],
+                                  eventLocation: event["location"],
+                                  eventDescription: "Event Description here",
+                                ),
+                              ),
+                            );
+                          },
+                        );
                       },
-                    );
-                  }
-                },
-              ),
+                    ),
             ),
           ],
         ),
@@ -112,12 +196,12 @@ class _EventsScreenState extends State<EventsScreen> {
       floatingActionButton: isMyEventsSelected
           ? FloatingActionButton(
               onPressed: () {
-                                    // Handle Add Event action
+                // Handle Add Event action
               },
               backgroundColor: AppColors.primary,
               child: Icon(Icons.add),
             )
-          : null, 
+          : null,
     );
   }
 
@@ -126,6 +210,7 @@ class _EventsScreenState extends State<EventsScreen> {
       onTap: () {
         setState(() {
           isMyEventsSelected = (text == "My Events");
+          _filterAndSortEvents(); // Refresh events on toggle
         });
       },
       child: Container(
