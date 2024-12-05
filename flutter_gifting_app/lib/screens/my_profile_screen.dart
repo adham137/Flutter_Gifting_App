@@ -84,40 +84,30 @@ class ProfilePage extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   // Use EventCard dynamically
-                  EventCard(
-                    name: "Adham Yasser",
-                    title: "Grad",
-                    location: "Ain Shams University",
-                    date: "15/9/2025",
-                    time: "8:00 PM",
-                    status: "Current",
-                    onDelete: () {
-                      // Handle delete action
-                    },
-                    onEdit: () {
-                      // Handle edit action
-                    },
-                    onView: () {
-                      // Handle view action
-                    },
-                  ),
-                  EventCard(
-                    name: "Adham Yasser",
-                    title: "My Birthday",
-                    location: "McDonald's El-Serag",
-                    date: "13/7/2025",
-                    time: "12:00 AM",
-                    status: "Upcoming",
-                    onDelete: () {
-                      // Handle delete action
-                    },
-                    onEdit: () {
-                      // Handle edit action
-                    },
-                    onView: () {
-                      // Handle view action
-                    },
-                  ),
+                  // EventCard(
+                  //   name: "Adham Yasser",
+                  //   title: "Grad",
+                  //   location: "Ain Shams University",
+                  //   date: "15/9/2025",
+                  //   time: "8:00 PM",
+                  //   status: "Current",
+
+                  //   onView: () {
+                  //     // Handle view action
+                  //   },
+                  // ),
+                  // EventCard(
+                  //   name: "Adham Yasser",
+                  //   title: "My Birthday",
+                  //   location: "McDonald's El-Serag",
+                  //   date: "13/7/2025",
+                  //   time: "12:00 AM",
+                  //   status: "Upcoming",
+
+                  //   onView: () {
+                  //     // Handle view action
+                  //   },
+                  // ),
                 ],
               ),
             ),
