@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
+
 import '../controllers/controller_events_screen.dart';
+import 'event_details.dart';
 import '../components/event_card.dart';
 import '../models/event.dart';
 import 'event_creation_screen.dart';
@@ -147,9 +149,13 @@ class _EventsScreenState extends State<EventsScreen> {
                         return EventCard(
                           event: event,
                           onView: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("View clicked for: ${event.name}")),
-                            );
+                            Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyEventPage(event: event), // Pass the event object here
+                            ),
+                          );
+
                           },
                           onDeleteUpdateScreen: () => _loadEvents(), // Reload events after deletion
                         );

@@ -1,152 +1,240 @@
 import 'package:flutter/material.dart';
-import '../components/gift_card.dart'; // Updated GiftCard
+import '../components/gift_card.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
+import '../models/event.dart';
+import '../models/gift.dart';
+import '../components/sort_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MyEventPage extends StatelessWidget {
-  final String eventName;
-  final String eventDate;
-  final String eventTime;
-  final String eventLocation;
-  final String eventDescription;
+class MyEventPage extends StatefulWidget {
+  final EventModel event;
 
   const MyEventPage({
     Key? key,
-    required this.eventName,
-    required this.eventDate,
-    required this.eventTime,
-    required this.eventLocation,
-    required this.eventDescription,
+    required this.event,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // Example Gift List Data (Can later be replaced with dynamic data)
-    final List<Map<String, String>> giftList = [
-      {
-        "recipientName": "Adham Yasser",
-        "recipientImage": "assets/images/avatar1.png",
-        "location": "Faculty of Engineering, Ain Shams University",
-        "date": eventDate,
-        "time": eventTime,
-        "giftName": "iPhone 16",
-        "category": "Appliances",
-        "status": "Available",
-      },
-      {
-        "recipientName": "Adham Yasser",
-        "recipientImage": "assets/images/avatar1.png",
-        "location": "Faculty of Engineering, Ain Shams University",
-        "date": eventDate,
-        "time": eventTime,
-        "giftName": "iPhone 15",
-        "category": "Appliances",
-        "status": "Pledged",
-      },
-    ];
+  _MyEventPageState createState() => _MyEventPageState();
+}
 
+class _MyEventPageState extends State<MyEventPage> {
+  String? selectedSort;
+  List<GiftModel> gifts = [];
+  List<GiftModel> filteredGifts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGifts();
+  }
+
+  Future<void> _loadGifts() async {
+    final fetchedGifts = await GiftModel.getGiftsByEvent(widget.event.eventId);
+    setState(() {
+      gifts = fetchedGifts;
+      _filterAndSortGifts();
+    });
+  }
+
+  void _filterAndSortGifts() {
+    setState(() {
+      filteredGifts = List.from(gifts);
+      if (selectedSort != null) {
+        filteredGifts.sort((a, b) {
+          switch (selectedSort) {
+            case "Category":
+              return a.category.compareTo(b.category);
+            case "Name":
+              return a.name.compareTo(b.name);
+            case "Status":
+              return a.status.compareTo(b.status);
+            default:
+              return 0;
+          }
+        });
+      }
+    });
+  }
+
+  void _showAddGiftDialog() {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController categoryController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          title: Text(
+            "Add Gift",
+            style: AppFonts.header,
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: "Gift Name",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: "Description",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: categoryController,
+                  decoration: InputDecoration(
+                    labelText: "Category",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: "Price",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: AppColors.secondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              onPressed: () async {
+                if (nameController.text.isNotEmpty &&
+                    descriptionController.text.isNotEmpty &&
+                    categoryController.text.isNotEmpty &&
+                    priceController.text.isNotEmpty) {
+                      
+                  final newGift = GiftModel(
+                    giftId: FirebaseFirestore.instance.collection('gifts').doc().id,
+                    eventId: widget.event.eventId,
+                    name: nameController.text,
+                    description: descriptionController.text,
+                    category: categoryController.text,
+                    price: double.tryParse(priceController.text) ?? 0.0,
+                    status: 'Available',
+                  );
+                  await GiftModel.createGift(newGift);
+                  await _loadGifts(); // Refresh the gift list
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Add Gift"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(eventName),
+        title: Text(widget.event.name),
         backgroundColor: AppColors.primary,
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Event Details Section
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("About Event", style: AppFonts.header),
+                  Text("Event Details", style: AppFonts.header),
                   const SizedBox(height: 8),
-                  Text(eventDescription, style: AppFonts.body),
-                  const SizedBox(height: 16),
-                  Text("Location", style: AppFonts.header),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/map_placeholder.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
+                  Text("Category: ${widget.event.category}", style: AppFonts.body),
+                  Text("Date: ${widget.event.date.toDate().toString()}", style: AppFonts.body),
+                  Text("Status: ${widget.event.status}", style: AppFonts.body),
+                  Text("Location: ${widget.event.location ?? 'Not provided'}", style: AppFonts.body),
+                  Text("Created At: ${widget.event.createdAt.toDate().toString()}", style: AppFonts.body),
                   const SizedBox(height: 16),
                 ],
               ),
             ),
-
-            // Gift List Section
-            Container(
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Gift List", style: AppFonts.header),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Sort By:",
-                        style: AppFonts.body,
-                      ),
-                      DropdownButton<String>(
-                        items: ["Category", "Name", "Status"]
-                            .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e, style: AppFonts.body),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          // Sorting logic here
-                        },
-                        hint: Text("Category", style: AppFonts.body),
-                      ),
-                    ],
+                  const SizedBox(height: 16),
+                  SortOptions(
+                    selectedSort: selectedSort,
+                    onSortSelected: (sort) {
+                      setState(() {
+                        selectedSort = sort;
+                        _filterAndSortGifts();
+                      });
+                    },
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
-
-            // Render Gift Cards
-            ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: giftList.length,
-              itemBuilder: (context, index) {
-                final gift = giftList[index];
-                return GiftCard(
-                  recipientName: gift["recipientName"]!,
-                  recipientImage: gift["recipientImage"]!,
-                  location: gift["location"]!,
-                  date: gift["date"]!,
-                  time: gift["time"]!,
-                  giftName: gift["giftName"]!,
-                  category: gift["category"]!,
-                  status: gift["status"]!,
+            FutureBuilder<List<GiftModel>>(
+              future: GiftModel.getGiftsByEvent(widget.event.eventId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("No gifts available"));
+                }
+                return ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: filteredGifts.length,
+                  itemBuilder: (context, index) {
+                    final gift = filteredGifts[index];
+                    return GiftCard(
+                      recipientName: gift.pledgedBy ?? 'Unknown',
+                      recipientImage: gift.imageUrl ?? 'assets/images/default_avatar.png',
+                      location: gift.description,
+                      date: widget.event.date.toDate().toString(),
+                      time: widget.event.date.toDate().toString(),
+                      giftName: gift.name,
+                      category: gift.category,
+                      status: gift.status,
+                    );
+                  },
                 );
               },
             ),
-
-            // Add Gift Button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.center,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Logic to add a gift
-                    showDialog(
-                      context: context,
-                      builder: (context) => AddGiftDialog(),
-                    );
-                  },
+                  onPressed: _showAddGiftDialog,
                   icon: const Icon(Icons.add),
                   label: const Text("Add Gift"),
                   style: ElevatedButton.styleFrom(
@@ -158,44 +246,6 @@ class MyEventPage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class AddGiftDialog extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    String giftName = "";
-    String category = "";
-
-    return AlertDialog(
-      title: const Text("Add Gift"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            onChanged: (value) => giftName = value,
-            decoration: const InputDecoration(labelText: "Gift Name"),
-          ),
-          TextField(
-            onChanged: (value) => category = value,
-            decoration: const InputDecoration(labelText: "Category"),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        TextButton(
-          onPressed: () {
-            // Logic to save gift
-            Navigator.pop(context);
-          },
-          child: const Text("Add"),
-        ),
-      ],
     );
   }
 }
