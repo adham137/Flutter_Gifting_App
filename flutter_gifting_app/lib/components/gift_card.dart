@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import 'action_button.dart';
+import '../utils/user_manager.dart';
 
 class GiftCard extends StatelessWidget {
   final String recipientName;
@@ -12,6 +13,7 @@ class GiftCard extends StatelessWidget {
   final String giftName;
   final String category;
   final String status;
+  final String userId; // ID of the user who created the event
 
   const GiftCard({
     required this.recipientName,
@@ -22,10 +24,13 @@ class GiftCard extends StatelessWidget {
     required this.giftName,
     required this.category,
     required this.status,
+    required this.userId,
   });
 
   @override
   Widget build(BuildContext context) {
+    bool isMyEvent = (userId == UserManager.currentUserId);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -75,34 +80,39 @@ class GiftCard extends StatelessWidget {
             // Action Buttons Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ActionButton(
-                  label: "Edit",
-                  color: Colors.blue,
-                  onPressed: () {
-                    // Add Edit Logic Here
-                  },
-                ),
-                ActionButton(
-                  label: "Delete",
-                  color: Colors.red,
-                  onPressed: () {
-                    // Add Delete Logic Here
-                  },
-                ),
-                ActionButton(
-                  label: status == "Available" ? "Pledge" : "Unpledge",
-                  color: status == "Available" ? Colors.green : Colors.orange,
-                  onPressed: () {
-                    // Add Pledge/Unpledge Logic Here
-                    if (status == "Available") {
-                      // Logic to pledge the gift
-                    } else {
-                      // Logic to unpledge the gift
-                    }
-                  },
-                ),
-              ],
+              children: isMyEvent
+                  ? [
+                      ActionButton(
+                        label: "Edit",
+                        color: Colors.blue,
+                        onPressed: () {
+                          // Add Edit Logic Here
+                        },
+                      ),
+                      ActionButton(
+                        label: "Delete",
+                        color: Colors.red,
+                        onPressed: () {
+                          // Add Delete Logic Here
+                        },
+                      ),
+                      ActionButton(
+                        label: "View",
+                        color: Colors.grey,
+                        onPressed: () {
+                          // Add View Logic Here
+                        },
+                      ),
+                    ]
+                  : [
+                      ActionButton(
+                        label: "Pledge",
+                        color: Colors.green,
+                        onPressed: () {
+                          // Add Pledge Logic Here
+                        },
+                      ),
+                    ],
             ),
           ],
         ),

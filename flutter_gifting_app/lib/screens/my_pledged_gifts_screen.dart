@@ -6,6 +6,8 @@ import '../components/gift_card.dart';
 import '../components/search_bar.dart';
 import '../components/sort_options.dart';
 
+import '../utils/user_manager.dart';
+
 class MyPledgedGiftsPage extends StatefulWidget {
   @override
   _MyPledgedGiftsPageState createState() => _MyPledgedGiftsPageState();
@@ -136,6 +138,7 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
                         giftName: gift["giftName"],
                         category: gift["category"],
                         status: gift["status"],
+                        userId: UserManager.currentUserId!,                   ///
                       );
                     },
                   ),

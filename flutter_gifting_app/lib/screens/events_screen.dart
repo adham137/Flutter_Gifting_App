@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 
 import '../controllers/controller_events_screen.dart';
+
 import 'event_details.dart';
-import '../components/event_card.dart';
-import '../models/event.dart';
 import 'event_creation_screen.dart';
+
+import '../components/event_card.dart';
 import '../components/sort_options.dart';
 import '../components/search_bar.dart';
 
-class EventsScreen extends StatefulWidget {
-  final String userId;
+import '../models/event.dart';
 
-  EventsScreen({required this.userId});
+import '../utils/user_manager.dart';
+
+
+
+class EventsScreen extends StatefulWidget {
+  final String userId = UserManager.currentUserId!;
 
   @override
   _EventsScreenState createState() => _EventsScreenState();
@@ -89,7 +95,7 @@ class _EventsScreenState extends State<EventsScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16, ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.background,
           borderRadius: BorderRadius.circular(8),
@@ -98,6 +104,7 @@ class _EventsScreenState extends State<EventsScreen> {
           text,
           style: isSelected ? AppFonts.button : AppFonts.body,
         ),
+        
       ),
     );
   }
@@ -106,7 +113,7 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,

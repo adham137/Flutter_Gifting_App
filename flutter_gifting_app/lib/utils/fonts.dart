@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'colors.dart';
+
 class AppFonts {
   static const TextStyle header = TextStyle(
     fontSize: 20,
@@ -17,7 +19,7 @@ class AppFonts {
   static const TextStyle button = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.bold,
-    color: Colors.white,
+    color: AppColors.primary,
   );
 
   static const TextStyle badge = TextStyle(

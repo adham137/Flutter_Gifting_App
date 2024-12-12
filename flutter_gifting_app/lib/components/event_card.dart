@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import '../models/event.dart'; // Ensure the EventModel is imported
+import '../utils/user_manager.dart'; // Import UserManager for current user ID
 
 class EventCard extends StatelessWidget {
   final EventModel event; // Pass the EventModel directly
@@ -16,6 +17,8 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMine = event.userId == UserManager.currentUserId; // Check if the event belongs to the current user
+
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
@@ -63,89 +66,91 @@ class EventCard extends StatelessWidget {
             ),
             SizedBox(height: 12),
 
-            // Action Buttons: Delete, View, Edit
+            // Action Buttons: Conditionally Rendered
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Delete Button
-                ElevatedButton(
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Confirm Delete'),
-                        content: Text('Are you sure you want to delete this event?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirm == true) {
-                      await EventModel.deleteEvent(event.eventId);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Event deleted successfully')),
-                      );
-                      this.onDeleteUpdateScreen();  
-                    }
-                  },
-                  child: Text('Delete'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                ),
-
-                // View Button
-                ElevatedButton(
-                  onPressed: onView,
-                  child: Text('View'),
-                ),
-
-                // Edit Button
-                ElevatedButton(
-                  onPressed: () async {
-                    final newName = await showDialog<String>(
-                      context: context,
-                      builder: (context) {
-                        final controller = TextEditingController(text: event.name);
-                        return AlertDialog(
-                          title: Text('Edit Event'),
-                          content: TextField(
-                            controller: controller,
-                            decoration: InputDecoration(labelText: 'Event Name'),
-                          ),
+                if (isMine) ...[
+                  // Delete Button
+                  ElevatedButton(
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Confirm Delete'),
+                          content: Text('Are you sure you want to delete this event?'),
                           actions: [
                             TextButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Navigator.pop(context, false),
                               child: Text('Cancel'),
                             ),
                             TextButton(
-                              onPressed: () => Navigator.pop(context, controller.text),
-                              child: Text('Save'),
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text('Delete'),
                             ),
                           ],
-                        );
-                      },
-                    );
-
-                    if (newName != null && newName.isNotEmpty) {
-                      await EventModel.updateEvent(event.eventId, {'name': newName});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Event updated successfully')),
+                        ),
                       );
-                    }
-                  },
-                  child: Text('Edit'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
+
+                      if (confirm == true) {
+                        await EventModel.deleteEvent(event.eventId);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Event deleted successfully')),
+                        );
+                        this.onDeleteUpdateScreen();
+                      }
+                    },
+                    child: Text('Delete'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
                   ),
+
+                  // Edit Button
+                  ElevatedButton(
+                    onPressed: () async {
+                      final newName = await showDialog<String>(
+                        context: context,
+                        builder: (context) {
+                          final controller = TextEditingController(text: event.name);
+                          return AlertDialog(
+                            title: Text('Edit Event'),
+                            content: TextField(
+                              controller: controller,
+                              decoration: InputDecoration(labelText: 'Event Name'),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, controller.text),
+                                child: Text('Save'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (newName != null && newName.isNotEmpty) {
+                        await EventModel.updateEvent(event.eventId, {'name': newName});
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Event updated successfully')),
+                        );
+                      }
+                    },
+                    child: Text('Edit'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                    ),
+                  ),
+                ],
+
+                // View Button (always visible)
+                ElevatedButton(
+                  onPressed: onView,
+                  child: Text('View'),
                 ),
               ],
             ),

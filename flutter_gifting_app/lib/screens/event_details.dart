@@ -224,6 +224,7 @@ class _MyEventPageState extends State<MyEventPage> {
                       giftName: gift.name,
                       category: gift.category,
                       status: gift.status,
+                      userId: widget.event.userId,
                     );
                   },
                 );

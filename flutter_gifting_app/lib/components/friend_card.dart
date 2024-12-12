@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-class FriendCard extends StatelessWidget {
-  final String name;
-  final int eventCount;
 
-  FriendCard({required this.name, required this.eventCount});
+import '../models/user.dart';
+import '../models/event.dart';
+
+class FriendCard extends StatelessWidget {
+  final UserModel user;
+  String get name => user.name;
+
+  FriendCard({required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +19,27 @@ class FriendCard extends StatelessWidget {
         ),
         title: Text(name),
         subtitle: Text('Upcoming Events'),
-        trailing: CircleAvatar(
-          backgroundColor: Colors.blue,
-          child: Text(
-            '$eventCount',
-            style: TextStyle(color: Colors.white),
-          ),
+        trailing: FutureBuilder<int>(
+          future: EventModel.getEventsCountByUser(user.userId),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return CircleAvatar(
+                backgroundColor: Colors.blue,
+                child: Text(
+                  '${snapshot.data}',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            } else {
+              return CircleAvatar(
+                backgroundColor: Colors.blue,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                ),
+              );
+            }
+          },
         ),
       ),
     );

@@ -63,6 +63,16 @@ class EventModel {
         .get();
     return querySnapshot.docs.map((doc) => EventModel.fromFirestore(doc)).toList();
   }
+  
+
+static Future<int> getEventsCountByUser(String userId) async {
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('events')
+      .where('user_id', isEqualTo: userId)
+      .get();
+
+  return querySnapshot.docs.length;
+}
 
   static Future<void> updateEvent(String eventId, Map<String, dynamic> data) async {
     await FirebaseFirestore.instance.collection('events').doc(eventId).update(data);

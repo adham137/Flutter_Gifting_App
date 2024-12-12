@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
+import '../utils/user_manager.dart'; // Import the global user manager
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -15,18 +16,28 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> _signIn() async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      // Perform sign-in
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      // Update the global user ID
+      User? user = userCredential.user;
+      if (user != null) {
+        UserManager.updateUserId(user.uid);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Sign-in successful!')),
       );
+
+      // Navigate to the parent screen
       Navigator.pushNamedAndRemoveUntil(
         context,
         '/parent',
         (route) => false, // Remove all previous routes
-      );          
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),

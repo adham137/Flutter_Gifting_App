@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+
+import '../utils/colors.dart';
+import '../utils/fonts.dart';
+
 import '../components/event_card.dart'; // Import EventCard widget
 
 class ProfilePage extends StatelessWidget {
@@ -117,16 +121,15 @@ class ProfilePage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ElevatedButton(
                 onPressed: () => _signOut(context),
+                // i want to make this button bigger horizontaly
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Red for sign-out
+                  backgroundColor: AppColors.lightGrey, // Red for sign-out
                   padding: EdgeInsets.symmetric(vertical: 12),
+                  fixedSize: Size(100, 50),
                 ),
                 child: Text(
                   "Sign Out",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppFonts.button,
                 ),
               ),
             ),

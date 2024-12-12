@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../components/add_friend_modal.dart';
+import '../components/sort_options.dart'; 
 import '../components/friend_card.dart';
+
 import '../models/user.dart';
-import '../components/sort_options.dart'; // Import SortOptions
+
+import '../utils/user_manager.dart';
+
 
 class HomeScreen extends StatefulWidget {
-  final String userId;
-
-  HomeScreen({required this.userId});
-
+  final String userId = UserManager.currentUserId!;
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -227,8 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) {
                         final friend = filteredFriends[index];
                         return FriendCard(
-                          name: friend.name,
-                          eventCount: 0, // Replace with dynamic event count if available
+                          user: friend,
                         );
                       },
                     ),
