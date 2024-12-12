@@ -10,14 +10,13 @@ class GiftCard extends StatelessWidget {
   final GiftModel gift;
   final VoidCallback onGiftUpdated;
   final VoidCallback onGiftDeleted;
-  final String userId;
+  late String userId = gift.creatorId;
 
-  const GiftCard({
+  GiftCard({
     required this.gift,
     required this.onGiftUpdated,
     required this.onGiftDeleted,
-    required this.userId,
-  });
+  }) : userId = gift.creatorId;
 
   void _showGiftDetails(BuildContext context, {bool isEditing = false}) {
     final TextEditingController nameController = TextEditingController(text: gift.name);
@@ -78,6 +77,7 @@ class GiftCard extends StatelessWidget {
                   onPressed: () async {
                     final updatedGift = GiftModel(
                       giftId: gift.giftId,
+                      creatorId: gift.creatorId,
                       eventId: gift.eventId,
                       name: nameController.text,
                       description: descriptionController.text,
@@ -86,6 +86,7 @@ class GiftCard extends StatelessWidget {
                       status: gift.status,
                       pledgedBy: gift.pledgedBy,
                       imageUrl: gift.imageUrl,
+                      
                     );
                     await GiftModel.updateGift(gift.giftId, updatedGift.toFirestore());
                     onGiftUpdated();
@@ -131,64 +132,91 @@ class GiftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     bool isMyEvent = (userId == UserManager.currentUserId);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gift Header
-            Row(
+      child: Stack(
+        children: [
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.card_giftcard, color: AppColors.primary),
-                const SizedBox(width: 10),
-                Text(gift.name, style: AppFonts.subtitle),
+                // Gift Header
+                Row(
+                  children: [
+                    Icon(Icons.card_giftcard, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Text(gift.name, style: AppFonts.subtitle),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(gift.description, style: AppFonts.body),
+                const SizedBox(height: 16),
+
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: isMyEvent
+                      ? [
+                          ActionButton(
+                            label: "Delete",
+                            color: Colors.red,
+                            onPressed: () => _confirmDelete(context),
+                          ),
+                          ActionButton(
+                            label: "Edit",
+                            color: Colors.blue,
+                            onPressed: () => _showGiftDetails(context, isEditing: true),
+                          ),
+                          ActionButton(
+                            label: "View",
+                            color: Colors.grey,
+                            onPressed: () => _showGiftDetails(context),
+                          ),
+                        ]
+                      : [
+                          ActionButton(
+                            label: gift.status == 'Pledged' ? "Unpledge" : "Pledge",
+                            color: gift.status == 'Pledged' ? Colors.green : Colors.yellow,
+                            onPressed: () async {
+                              if (gift.status == 'Pledged') {
+                                await gift.unpledgeGift();
+                              } else {
+                                await gift.pledgeGift();
+                              }
+                              onGiftUpdated();
+                            },
+                          ),
+                          ActionButton(
+                            label: "View",
+                            color: Colors.grey,
+                            onPressed: () => _showGiftDetails(context, isEditing: false),
+                          ),
+                        ],
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(gift.description, style: AppFonts.body),
-            const SizedBox(height: 16),
-
-            // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: isMyEvent ? [
-                ActionButton(
-                  label: "Delete",
-                  color: Colors.red,
-                  onPressed: () => _confirmDelete(context),
-                ),
-                ActionButton(
-                  label: "Edit",
-                  color: Colors.blue,
-                  onPressed: () => _showGiftDetails(context, isEditing: true),
-                ),
-                ActionButton(
-                  label: "View",
-                  color: Colors.grey,
-                  onPressed: () => _showGiftDetails(context),
-                ),
-
-              ] :
-              [
-                ActionButton(
-                  label: "Pledge",
-                  color: Colors.yellow,
-                  onPressed: ()=>{},
-                ),
-                ActionButton(
-                  label: "View",
-                  color: Colors.grey,
-                  onPressed: () => _showGiftDetails(context, isEditing: false),
-                ),
-              ],
+          ),
+          // Status Badge
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: gift.status == 'Pledged' ? Colors.green : Colors.orange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                gift.status,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

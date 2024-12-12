@@ -8,6 +8,8 @@ import '../components/sort_options.dart';
 
 import '../utils/user_manager.dart';
 
+import '../models/gift.dart';
+
 class MyPledgedGiftsPage extends StatefulWidget {
   @override
   _MyPledgedGiftsPageState createState() => _MyPledgedGiftsPageState();
@@ -16,74 +18,49 @@ class MyPledgedGiftsPage extends StatefulWidget {
 class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
   final TextEditingController searchController = TextEditingController();
   String? selectedSort;
-  List<Map<String, dynamic>> gifts = []; // Dummy data list
-  List<Map<String, dynamic>> filteredGifts = []; // Filtered list
+  List<GiftModel> gifts = [];
+  List<GiftModel> filteredGifts = [];
+  late Future<void> loadGiftsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadDummyData(); // Initialize dummy data
-    _filterAndSortGifts(); // Initialize filtered list
+    loadGiftsFuture = _loadGifts();
     searchController.addListener(_filterAndSortGifts);
   }
 
-  void _loadDummyData() {
-    gifts = [
-      {
-        "recipientName": "Ahmed",
-        "recipientImage": "assets/images/profile_placeholder.png",
-        "location": "Cairo, Egypt",
-        "date": "24 / 10 / 2024",
-        "time": "8:00 PM",
-        "giftName": "iPhone 16",
-        "category": "Appliances",
-        "status": "Pending",
-      },
-      {
-        "recipientName": "Sara",
-        "recipientImage": "assets/images/profile_placeholder.png",
-        "location": "Alexandria, Egypt",
-        "date": "15 / 09 / 2024",
-        "time": "5:00 PM",
-        "giftName": "MacBook Air",
-        "category": "Electronics",
-        "status": "Delivered",
-      },
-      {
-        "recipientName": "Omar",
-        "recipientImage": "assets/images/profile_placeholder.png",
-        "location": "Giza, Egypt",
-        "date": "12 / 11 / 2024",
-        "time": "6:00 PM",
-        "giftName": "PlayStation 5",
-        "category": "Gaming",
-        "status": "Pending",
-      },
-    ];
-    filteredGifts = List.from(gifts);
+
+  Future<void> _loadGifts() async {
+    try {
+      final fetchedGifts = await GiftModel.getMyPledgedGifts();
+      setState(() {
+        gifts = fetchedGifts;
+        filteredGifts = List.from(gifts);
+      });
+    } catch (e) {
+      print("Error loading gifts: $e");
+    }
   }
 
   void _filterAndSortGifts() {
     final query = searchController.text.toLowerCase();
 
     setState(() {
-      // Filter gifts based on search query
       filteredGifts = gifts.where((gift) {
-        final name = gift["recipientName"].toLowerCase();
-        final giftName = gift["giftName"].toLowerCase();
-        return name.contains(query) || giftName.contains(query);
+        final name = gift.name.toLowerCase();
+        final description = gift.description.toLowerCase();
+        return name.contains(query) || description.contains(query);
       }).toList();
 
-      // Sort gifts based on selected sort option
       if (selectedSort != null) {
         filteredGifts.sort((a, b) {
           switch (selectedSort) {
             case "Category":
-              return a["category"].compareTo(b["category"]);
+              return a.category.compareTo(b.category);
             case "Name":
-              return a["recipientName"].compareTo(b["recipientName"]);
+              return a.name.compareTo(b.name);
             case "Status":
-              return a["status"].compareTo(b["status"]);
+              return a.status.compareTo(b.status);
             default:
               return 0;
           }
@@ -108,43 +85,49 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
           style: AppFonts.header,
         ),
       ),
-      body: Column(
-        children: [
-          MySearchBar(controller: searchController), // Updated reusable SearchBar
-          const SizedBox(height: 10),
-          SortOptions(
-            selectedSort: selectedSort,
-            onSortSelected: (sort) {
-              setState(() {
-                selectedSort = sort;
-                _filterAndSortGifts();
-              });
-            },
-          ), // Updated reusable SortOptions
-          const SizedBox(height: 10),
-          Expanded(
-            child: filteredGifts.isEmpty
-                ? Center(child: Text("No gifts found"))
-                : ListView.builder(
-                    itemCount: filteredGifts.length,
-                    itemBuilder: (context, index) {
-                      final gift = filteredGifts[index];
-                      // return GiftCard(
-                      //   recipientName: gift["recipientName"],
-                      //   recipientImage: gift["recipientImage"],
-                      //   location: gift["location"],
-                      //   date: gift["date"],
-                      //   time: gift["time"],
-                      //   giftName: gift["giftName"],
-                      //   category: gift["category"],
-                      //   status: gift["status"],
-                      //   userId: UserManager.currentUserId!,                   ///
-                      // );
-                    },
-                  ),
-          ),
-        ],
+      body: FutureBuilder<void>(
+        future: loadGiftsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error loading gifts"));
+          }
+
+          return Column(
+            children: [
+              MySearchBar(controller: searchController),
+              const SizedBox(height: 10),
+              SortOptions(
+                selectedSort: selectedSort,
+                onSortSelected: (sort) {
+                  setState(() {
+                    selectedSort = sort;
+                    _filterAndSortGifts();
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: filteredGifts.isEmpty
+                    ? Center(child: Text("No gifts found"))
+                    : ListView.builder(
+                        itemCount: filteredGifts.length,
+                        itemBuilder: (context, index) {
+                          final gift = filteredGifts[index];
+                          return GiftCard(
+                            gift: filteredGifts[index],
+                            onGiftUpdated: _loadGifts,
+                            onGiftDeleted: _loadGifts,
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
+

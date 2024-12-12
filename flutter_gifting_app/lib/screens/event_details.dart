@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gifting_app/utils/user_manager.dart';
 import '../components/gift_card.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
@@ -131,6 +132,7 @@ class _MyEventPageState extends State<MyEventPage> {
                   final newGift = GiftModel(
                     giftId: FirebaseFirestore.instance.collection('gifts').doc().id,
                     eventId: widget.event.eventId,
+                    creatorId: UserManager.currentUserId!,
                     name: nameController.text,
                     description: descriptionController.text,
                     category: categoryController.text,
@@ -218,7 +220,6 @@ class _MyEventPageState extends State<MyEventPage> {
                       gift: filteredGifts[index],
                       onGiftUpdated: _loadGifts,
                       onGiftDeleted: _loadGifts,
-                      userId: widget.event.userId,
                     );
                   },
                 );
