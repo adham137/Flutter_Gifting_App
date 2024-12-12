@@ -129,17 +129,17 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
                     itemCount: filteredGifts.length,
                     itemBuilder: (context, index) {
                       final gift = filteredGifts[index];
-                      return GiftCard(
-                        recipientName: gift["recipientName"],
-                        recipientImage: gift["recipientImage"],
-                        location: gift["location"],
-                        date: gift["date"],
-                        time: gift["time"],
-                        giftName: gift["giftName"],
-                        category: gift["category"],
-                        status: gift["status"],
-                        userId: UserManager.currentUserId!,                   ///
-                      );
+                      // return GiftCard(
+                      //   recipientName: gift["recipientName"],
+                      //   recipientImage: gift["recipientImage"],
+                      //   location: gift["location"],
+                      //   date: gift["date"],
+                      //   time: gift["time"],
+                      //   giftName: gift["giftName"],
+                      //   category: gift["category"],
+                      //   status: gift["status"],
+                      //   userId: UserManager.currentUserId!,                   ///
+                      // );
                     },
                   ),
           ),

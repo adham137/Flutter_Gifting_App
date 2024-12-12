@@ -214,16 +214,10 @@ class _MyEventPageState extends State<MyEventPage> {
                   shrinkWrap: true,
                   itemCount: filteredGifts.length,
                   itemBuilder: (context, index) {
-                    final gift = filteredGifts[index];
                     return GiftCard(
-                      recipientName: gift.pledgedBy ?? 'Unknown',
-                      recipientImage: gift.imageUrl ?? 'assets/images/default_avatar.png',
-                      location: gift.description,
-                      date: widget.event.date.toDate().toString(),
-                      time: widget.event.date.toDate().toString(),
-                      giftName: gift.name,
-                      category: gift.category,
-                      status: gift.status,
+                      gift: filteredGifts[index],
+                      onGiftUpdated: _loadGifts,
+                      onGiftDeleted: _loadGifts,
                       userId: widget.event.userId,
                     );
                   },

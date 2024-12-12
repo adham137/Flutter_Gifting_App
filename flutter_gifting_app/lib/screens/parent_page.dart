@@ -5,6 +5,9 @@ import 'my_pledged_gifts_screen.dart';
 import 'events_screen.dart';
 import 'home_screen.dart';
 import 'my_profile_screen.dart';
+
+import '../utils/user_manager.dart ';
+
 import '../components/bottom_nav_bar.dart';
 
 class ParentPage extends StatefulWidget {
@@ -17,12 +20,14 @@ class _ParentPageState extends State<ParentPage> {
   // String? _userId; // To store the current user ID
   // bool _isLoading = true; // To track if the user ID is being fetched
 
-  // Initialize the user ID
-  @override
-  void initState() {
-    super.initState();
-    // _fetchCurrentUserId();
-  }
+  // // Initialize the user ID
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _fetchCurrentUserId();
+  // }
+
+  
 
   // Future<void> _fetchCurrentUserId() async {
   //   try {
@@ -31,7 +36,7 @@ class _ParentPageState extends State<ParentPage> {
   //       throw Exception('No user is currently signed in.');
   //     }
   //     setState(() {
-  //       _userId = user.uid;
+  //       UserManager.updateUserId(user.uid);
   //       _isLoading = false;
   //     });
   //   } catch (e) {

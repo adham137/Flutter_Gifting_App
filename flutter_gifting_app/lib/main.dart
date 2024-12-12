@@ -10,11 +10,18 @@ import 'screens/signup_screen.dart';
 import 'screens/my_pledged_gifts_screen.dart';
 import 'screens/parent_page.dart';
 
+import '../utils/user_manager.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //if (FirebaseAuth.instance.currentUser == null)
   await Firebase.initializeApp();
+
+  // Get current user
+  UserManager.updateUserId(FirebaseAuth.instance.currentUser!.uid);
+
   runApp(HedieatyApp());
+
 }
 
 class HedieatyApp extends StatelessWidget {
@@ -26,7 +33,7 @@ class HedieatyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
       ),
       // Define initial route based on Firebase authentication state
-      initialRoute: FirebaseAuth.instance.currentUser == null
+      initialRoute: UserManager.currentUserId == null
           ? '/sign-in'
           : '/parent',
       routes: {
