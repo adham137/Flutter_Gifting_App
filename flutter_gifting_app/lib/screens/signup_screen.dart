@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import '../models/user.dart';
+import '../utils/image_utils.dart';
+import '../utils/user_manager.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -18,6 +21,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  File? _profileImage;
+
   Future<void> _signUp() async {
     try {
       // Create User in Firebase Auth
@@ -27,8 +32,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       User? firebaseUser = userCredential.user;
-
+      UserManager.updateUserId(firebaseUser?.uid);
+      
       if (firebaseUser != null) {
+        String? imagePath;
+        if (_profileImage != null) {
+          imagePath = await ImageUtils.saveImageLocally(_profileImage!, firebaseUser.uid);
+        }
 
         // Initialize a User object and create it in Firestore
         UserModel user = UserModel(
@@ -36,7 +46,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
-          profilePictureUrl: null, // This can be updated later
+          profilePictureUrl: imagePath,
           createdAt: Timestamp.now(),
           friends: [],
           pushNotifications: false,
@@ -61,6 +71,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  Future<void> _pickProfileImage() async {
+    // Request gallery permissions
+    bool hasPermission = await ImageUtils.requestGalleryPermission();
+    if (!hasPermission) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gallery permission denied!')),
+      );
+      return;
+    }
+
+    // Pick the image
+    File? selectedImage = await ImageUtils.pickImageFromGallery();
+    if (selectedImage != null) {
+      setState(() {
+        _profileImage = selectedImage;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +104,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              GestureDetector(
+                onTap: _pickProfileImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage:
+                      _profileImage != null ? FileImage(_profileImage!) : null,
+                  child: _profileImage == null
+                      ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                      : null,
+                ),
+              ),
+              SizedBox(height: 16),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(

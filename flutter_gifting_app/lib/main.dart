@@ -18,7 +18,7 @@ void main() async {
   await Firebase.initializeApp();
 
   // Get current user
-  UserManager.updateUserId(FirebaseAuth.instance.currentUser!.uid);
+  UserManager.updateUserId(FirebaseAuth.instance.currentUser?.uid);
 
   runApp(HedieatyApp());
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -101,8 +103,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       CircleAvatar(
                         radius: 50,
                         backgroundImage: currentUser!.profilePictureUrl != null
-                            ? NetworkImage(currentUser!.profilePictureUrl!)
-                            : AssetImage("assets/profile_picture.png") as ImageProvider,
+                            ? FileImage(File(currentUser!.profilePictureUrl!))
+                            : AssetImage("images/default_profile_picture.png") as ImageProvider,
                       ),
                       SizedBox(height: 16),
                       // Editable Fields
