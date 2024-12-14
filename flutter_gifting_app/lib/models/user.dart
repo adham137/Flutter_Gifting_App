@@ -8,6 +8,7 @@ class UserModel {
   String? profilePictureUrl;
   Timestamp createdAt;
   List<String> friends;
+  bool pushNotifications;
 
   UserModel({
     required this.userId,
@@ -17,6 +18,7 @@ class UserModel {
     this.profilePictureUrl,
     required this.createdAt,
     required this.friends,
+    required this.pushNotifications,
   });
 
   // Convert Firestore document to UserModel
@@ -30,6 +32,7 @@ class UserModel {
       profilePictureUrl: data['profile_picture_url'],
       createdAt: data['created_at'],
       friends: List<String>.from(data['friends']),
+      pushNotifications: data['push_notifications'],
     );
   }
 
@@ -42,6 +45,7 @@ class UserModel {
       'profile_picture_url': profilePictureUrl,
       'created_at': createdAt,
       'friends': friends,
+      'push_notifications': pushNotifications,
     };
   }
 

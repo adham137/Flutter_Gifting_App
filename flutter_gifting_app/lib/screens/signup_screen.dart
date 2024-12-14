@@ -39,6 +39,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           profilePictureUrl: null, // This can be updated later
           createdAt: Timestamp.now(),
           friends: [],
+          pushNotifications: false,
         );
         await UserModel.createUser(user);
 
