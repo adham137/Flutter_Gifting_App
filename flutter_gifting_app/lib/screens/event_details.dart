@@ -9,6 +9,7 @@ import '../components/sort_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'gift_creation_screen.dart';
+import 'gift_details_screen.dart';
 
 class MyEventPage extends StatefulWidget {
   final EventModel event;
@@ -218,11 +219,12 @@ class _MyEventPageState extends State<MyEventPage> {
                   shrinkWrap: true,
                   itemCount: filteredGifts.length,
                   itemBuilder: (context, index) {
+                    // Inside the ListView.builder for displaying gifts
                     return GiftCard(
                       gift: filteredGifts[index],
-                      onGiftUpdated: _loadGifts,
-                      onGiftDeleted: _loadGifts,
+                      callback: _loadGifts,
                     );
+
                   },
                 );
               },

@@ -117,8 +117,7 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
                           final gift = filteredGifts[index];
                           return GiftCard(
                             gift: filteredGifts[index],
-                            onGiftUpdated: _loadGifts,
-                            onGiftDeleted: _loadGifts,
+                            callback: _loadGifts,
                           );
                         },
                       ),
