@@ -8,6 +8,8 @@ import '../models/gift.dart';
 import '../components/sort_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'gift_creation_screen.dart';
+
 class MyEventPage extends StatefulWidget {
   final EventModel event;
 
@@ -230,7 +232,14 @@ class _MyEventPageState extends State<MyEventPage> {
               child: Align(
                 alignment: Alignment.center,
                 child: ElevatedButton.icon(
-                  onPressed: _showAddGiftDialog,
+                  onPressed:  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GiftCreationScreen(eventId: widget.event.eventId),
+                      ),
+                    ).then((_) => _loadGifts()); // Refresh gifts after returning
+                  },
                   icon: const Icon(Icons.add),
                   label: const Text("Add Gift"),
                   style: ElevatedButton.styleFrom(

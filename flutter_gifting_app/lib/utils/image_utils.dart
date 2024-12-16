@@ -27,7 +27,7 @@ class ImageUtils {
   static Future<String?> saveImageLocally(File image, String userId) async {
     try {
       Directory appDir = await getApplicationDocumentsDirectory();
-      String imageFileName = '${userId}_profile.png';
+      String imageFileName = '${userId}.png';
       String savePath = '${appDir.path}/$imageFileName';
 
       File savedImage = await image.copy(savePath);

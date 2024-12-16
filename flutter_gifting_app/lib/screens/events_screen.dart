@@ -154,6 +154,7 @@ class _EventsScreenState extends State<EventsScreen> {
                       itemBuilder: (context, index) {
                         final event = filteredEvents[index];
                         return EventCard(
+                          key:ValueKey(event.userId),
                           event: event,
                           onView: () {
                             Navigator.push(

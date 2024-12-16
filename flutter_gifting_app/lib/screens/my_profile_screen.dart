@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/event_card.dart';
+import '../components/image_handler.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import '../models/user.dart';
@@ -19,15 +20,22 @@ class _ProfilePageState extends State<ProfilePage> {
   late UserModel? currentUser;
   bool isLoading = true;
   bool isEditing = false;
-
   List<EventModel> userEvents = []; // To store the user's events
   bool areEventsLoading = true; // Loading state for events
-
+  String? _profileImagePath;
   @override
   void initState() {
     super.initState();
     fetchUserData();
     loadUserEvents();
+  }
+
+  Future<void> _handleImageUpdate(String imagePath) async {
+    setState(() {
+      _profileImagePath = imagePath;
+    });
+    print(imagePath);
+    await UserModel.updateUser(UserManager.currentUserId!, {'profile_picture_url': imagePath});
   }
 
   Future<void> fetchUserData() async {
@@ -100,13 +108,24 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       SizedBox(height: 16),
                       // Profile Header
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage: currentUser!.profilePictureUrl != null
-                            ? FileImage(File(currentUser!.profilePictureUrl!))
-                            : AssetImage("images/default_profile_picture.png") as ImageProvider,
+                      FutureBuilder<UserModel?>(
+                        future: UserModel.getUser(UserManager.currentUserId!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return ImageHandler(
+                              radius: 50,
+                              imagePath: snapshot.data!.profilePictureUrl,
+                              defaultImagePath: 'images/default_profile_picture.png',
+                              isEditable: true,
+                              onImageUpdate: _handleImageUpdate,
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        },
                       ),
                       SizedBox(height: 16),
+                      
                       // Editable Fields
                       _buildEditableField(
                         label: 'Name',
