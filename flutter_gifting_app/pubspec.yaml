@@ -43,10 +43,16 @@ dependencies:
   firebase_core: any
   firebase_database:  any
   firebase_auth: any
-  cloud_firestore: any
+
   image_picker: ^1.1.2
   path_provider: ^2.0.14
   permission_handler: ^10.4.0
+  cloud_firestore: ^5.5.1
+  firebase_messaging: ^15.1.6
+  http: ^1.2.2
+  googleapis: ^11.0.0
+  googleapis_auth: ^1.4.1
+  
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +79,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - images/
+    - keys/hediety-3d6a8-firebase-adminsdk-qdopa-cb2841403c.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

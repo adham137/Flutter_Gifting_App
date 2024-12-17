@@ -47,4 +47,7 @@
     
     <!-- For Android 13+ (optional for gallery access to manage media files) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Required to show notifications-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> 
 </manifest>

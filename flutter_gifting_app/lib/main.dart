@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -11,17 +12,30 @@ import 'screens/my_pledged_gifts_screen.dart';
 import 'screens/parent_page.dart';
 
 import '../utils/user_manager.dart';
+import 'utils/global_notifications_service.dart';
+import 'utils/local_notifications_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //if (FirebaseAuth.instance.currentUser == null)
+  
+  // Initialize Firebase
   await Firebase.initializeApp();
 
-  // Get current user
-  UserManager.updateUserId(FirebaseAuth.instance.currentUser?.uid);
+  // Check for current user
+  String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  if (currentUserId != null) {
+    UserManager.updateUserId(currentUserId);
+  }
 
+  // Request notification permission
+  await LocalNotificationsService().requestPermission();
+
+  // Initialize FCMService
+  final fcmService = await FCMService.initialize();
+  UserManager.updateFCMService(fcmService);
+
+  // Run the app
   runApp(HedieatyApp());
-
 }
 
 class HedieatyApp extends StatelessWidget {

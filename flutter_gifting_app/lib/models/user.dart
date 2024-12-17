@@ -66,4 +66,34 @@ class UserModel {
   static Future<void> deleteUser(String userId) async {
     await FirebaseFirestore.instance.collection('users').doc(userId).delete();
   }
+static Future<String?> getFcmToken(String userId) async {
+  try {
+    // Fetch the user document from Firestore
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
+
+    // Check if the document exists and contains the 'fcm_token' field
+    if (userDoc.exists) {
+      final data = userDoc.data();
+      final fcmToken = data?['fcm_token'];
+
+      if (fcmToken != null) {
+        print('FCM Token retrieved: $fcmToken');
+        return fcmToken;
+      } else {
+        print('No FCM token found for user: $userId');
+        return null;
+      }
+    } else {
+      print('User document does not exist for userId: $userId');
+      return null;
+    }
+  } catch (e) {
+    print('Error getting FCM token: $e');
+    return null;
+  }
+}
+
 }

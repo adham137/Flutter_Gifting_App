@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/user_manager.dart';
+import 'user.dart';
 
 class GiftModel {
   String giftId;
@@ -83,6 +84,17 @@ class GiftModel {
       status = 'Pledged';
       pledgedBy = currentUserId;
       await updateGift(giftId, toFirestore());
+
+      var pledgerName = UserManager.currentUser?.name ?? 'a Friend';
+
+      // Notifying the creator of the gift
+      String? fcmToken = await UserModel.getFcmToken(creatorId);
+      await UserManager.fcmService!.sendNotification(
+        fcmToken: fcmToken!,
+        title: 'Gift Pledged by $pledgerName !',
+        body: '$pledgerName has pledged $name ! 🎉',
+      );
+      print('########################### Sentt');
     }
   }
 
