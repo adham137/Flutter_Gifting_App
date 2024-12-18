@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gifting_app/models/user.dart';
 import '../controllers/controller_home_screen.dart';
 
 
@@ -23,7 +24,7 @@ class _AddFriendModalState extends State<AddFriendModal> {
     });
 
     try {
-      await FriendService.sendFriendRequest(widget.userId, _friendEmailController.text.trim());
+      await UserModel.sendFriendRequest(widget.userId, _friendEmailController.text.trim());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Friend request sent!')),
       );

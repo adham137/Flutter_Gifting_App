@@ -1,32 +1,73 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
-class FriendService {
-  static Future<void> sendFriendRequest(String userId, String friendEmail) async {
-    final users = FirebaseFirestore.instance.collection('users');
+import '../models/user.dart';
+import '../utils/user_manager.dart';
 
-    // Get friend's user ID by email
-    final friendSnapshot = await users.where('email', isEqualTo: friendEmail).get();
-    if (friendSnapshot.docs.isEmpty) {
-      throw Exception('User not found');
-    }
-    final friendId = friendSnapshot.docs.first.id;
+class HomeController {
+  final String userId = UserManager.currentUserId!;
+  final Function onUpdate;
 
-    // Get the current user's name and email
-    final userSnapshot = await users.doc(userId).get();
-    if (!userSnapshot.exists) {
-      throw Exception('Current user not found');
-    }
+  List<UserModel> friends = [];
+  List<Map<String, dynamic>> friendRequests = [];
+  List<UserModel> filteredFriends = [];
+  String? selectedSort;
+  final TextEditingController searchController = TextEditingController();
 
-    final userData = userSnapshot.data();
-    final userName = userData?['name'] ?? 'Unknown';
-    final userEmail = userData?['email'] ?? 'Unknown';
+  HomeController({required this.onUpdate});
 
-    // Add request to friend's "friend_requests" sub-collection
-    await users.doc(friendId).collection('friend_requests').doc(userId).set({
-      'requested_by': userId,
-      'name': userName,
-      'email': userEmail,
-      'requested_at': Timestamp.now(),
+  void init() {
+    _loadFriends();
+    _loadFriendRequests();
+
+    searchController.addListener(() {
+      _filterAndSortFriends();
     });
+  }
+
+  Future<void> _loadFriends() async {
+    UserModel? user = await UserModel.getUser(UserManager.currentUserId!);
+    if (user != null) {
+      friends = await UserModel.getFriends(user.friends);
+      filteredFriends = friends;
+      onUpdate();
+    }
+  }
+
+  Future<void> _loadFriendRequests() async {
+    friendRequests = await UserModel.getFriendRequests(userId);
+    onUpdate();
+  }
+
+  Future<void> acceptFriendRequest(String requestId, String friendId) async {
+    await UserModel.acceptFriendRequest(userId, friendId, requestId);
+    await _loadFriends();
+    await _loadFriendRequests();
+  }
+
+  void _filterAndSortFriends() {
+    final query = searchController.text.toLowerCase();
+    filteredFriends = friends
+        .where((friend) => friend.name.toLowerCase().contains(query))
+        .toList();
+    if (selectedSort != null) {
+      _applySort();
+    }
+    onUpdate();
+  }
+
+  void updateSortOption(String? sort) {
+    selectedSort = sort;
+    _applySort();
+    onUpdate();
+  }
+
+  void _applySort() {
+    if (selectedSort == "Name") {
+      filteredFriends.sort((a, b) => a.name.compareTo(b.name));
+    }
+  }
+
+  void dispose() {
+    searchController.dispose();
   }
 }

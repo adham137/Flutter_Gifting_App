@@ -1,158 +1,33 @@
+// views/my_event_page.dart
+
 import 'package:flutter/material.dart';
-import 'package:flutter_gifting_app/utils/user_manager.dart';
+import '../controllers/controller_event_details.dart';
+import '../models/event.dart';
+import '../components/sort_options.dart';
 import '../components/gift_card.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
-import '../models/event.dart';
-import '../models/gift.dart';
-import '../components/sort_options.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'gift_creation_screen.dart';
-import 'gift_details_screen.dart';
 
 class MyEventPage extends StatefulWidget {
   final EventModel event;
 
-  const MyEventPage({
-    Key? key,
-    required this.event,
-  }) : super(key: key);
+  const MyEventPage({Key? key, required this.event}) : super(key: key);
 
   @override
   _MyEventPageState createState() => _MyEventPageState();
 }
 
 class _MyEventPageState extends State<MyEventPage> {
-  String? selectedSort;
-  List<GiftModel> gifts = [];
-  List<GiftModel> filteredGifts = [];
+  late MyEventController _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadGifts();
-  }
-
-  Future<void> _loadGifts() async {
-    final fetchedGifts = await GiftModel.getGiftsByEvent(widget.event.eventId);
-    setState(() {
-      gifts = fetchedGifts;
-      _filterAndSortGifts();
+    _controller = MyEventController(event: widget.event);
+    _controller.loadGifts().then((_) {
+      setState(() {}); // Refresh UI after loading gifts
     });
-  }
-
-  void _filterAndSortGifts() {
-    setState(() {
-      filteredGifts = List.from(gifts);
-      if (selectedSort != null) {
-        filteredGifts.sort((a, b) {
-          switch (selectedSort) {
-            case "Category":
-              return a.category.compareTo(b.category);
-            case "Name":
-              return a.name.compareTo(b.name);
-            case "Status":
-              return a.status.compareTo(b.status);
-            default:
-              return 0;
-          }
-        });
-      }
-    });
-  }
-
-  void _showAddGiftDialog() {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-    final TextEditingController categoryController = TextEditingController();
-    final TextEditingController priceController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          title: Text(
-            "Add Gift",
-            style: AppFonts.header,
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: "Gift Name",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: "Description",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: categoryController,
-                  decoration: InputDecoration(
-                    labelText: "Category",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: priceController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Price",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: AppColors.secondary)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              onPressed: () async {
-                if (nameController.text.isNotEmpty &&
-                    descriptionController.text.isNotEmpty &&
-                    categoryController.text.isNotEmpty &&
-                    priceController.text.isNotEmpty) {
-                      
-                  final newGift = GiftModel(
-                    giftId: FirebaseFirestore.instance.collection('gifts').doc().id,
-                    eventId: widget.event.eventId,
-                    creatorId: UserManager.currentUserId!,
-                    name: nameController.text,
-                    description: descriptionController.text,
-                    category: categoryController.text,
-                    price: double.tryParse(priceController.text) ?? 0.0,
-                    status: 'Available',
-                  );
-                  await GiftModel.createGift(newGift);
-                  await _loadGifts(); // Refresh the gift list
-                  Navigator.pop(context);
-                }
-              },
-              child: Text("Add Gift"),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -166,6 +41,7 @@ class _MyEventPageState extends State<MyEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Event Details Section
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -174,73 +50,66 @@ class _MyEventPageState extends State<MyEventPage> {
                   Text("Event Details", style: AppFonts.header),
                   const SizedBox(height: 8),
                   Text("Category: ${widget.event.category}", style: AppFonts.body),
-                  Text("Date: ${widget.event.date.toDate().toString()}", style: AppFonts.body),
+                  Text("Date: ${widget.event.date.toString()}", style: AppFonts.body),
                   Text("Status: ${widget.event.status}", style: AppFonts.body),
                   Text("Location: ${widget.event.location ?? 'Not provided'}", style: AppFonts.body),
                   Text("Created At: ${widget.event.createdAt.toDate().toString()}", style: AppFonts.body),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Gift List", style: AppFonts.header),
-                  const SizedBox(height: 16),
-                  SortOptions(
-                    selectedSort: selectedSort,
-                    onSortSelected: (sort) {
-                      setState(() {
-                        selectedSort = sort;
-                        _filterAndSortGifts();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            FutureBuilder<List<GiftModel>>(
-              future: GiftModel.getGiftsByEvent(widget.event.eventId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text("No gifts available"));
-                }
-                return ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: filteredGifts.length,
-                  itemBuilder: (context, index) {
-                    // Inside the ListView.builder for displaying gifts
-                    return GiftCard(
-                      gift: filteredGifts[index],
-                      callback: _loadGifts,
-                    );
+            const SizedBox(height: 16),
 
+            // Sort Options
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SortOptions(
+                selectedSort: _controller.selectedSort,
+                onSortSelected: (sort) {
+                  setState(() {
+                    _controller.updateSortOption(sort);
+                  });
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Gift List Section
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: _controller.filteredGifts.length,
+              itemBuilder: (context, index) {
+                return GiftCard(
+                  gift: _controller.filteredGifts[index],
+                  callback: () {
+                    _controller.loadGifts().then((_) {
+                      setState(() {}); // Refresh UI after updating gifts
+                    });
                   },
                 );
               },
             ),
+            if (_controller.filteredGifts.isEmpty)
+              const Center(child: Text("No gifts available")),
+
+            // Add Gift Button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.center,
                 child: ElevatedButton.icon(
-                  onPressed:  () {
+                  onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => GiftCreationScreen(eventId: widget.event.eventId),
                       ),
-                    ).then((_) => _loadGifts()); // Refresh gifts after returning
+                    ).then((_) {
+                      _controller.loadGifts().then((_) {
+                        setState(() {}); // Refresh UI after returning from creation
+                      });
+                    });
                   },
                   icon: const Icon(Icons.add),
                   label: const Text("Add Gift"),
@@ -256,3 +125,5 @@ class _MyEventPageState extends State<MyEventPage> {
     );
   }
 }
+
+

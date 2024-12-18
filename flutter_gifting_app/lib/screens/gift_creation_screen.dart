@@ -1,8 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../components/image_handler.dart';
+
 import '../models/gift.dart';
+
+import '../controllers/controller_gift_creation_screen.dart';
+
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
 import '../utils/user_manager.dart';
@@ -17,70 +21,15 @@ class GiftCreationScreen extends StatefulWidget {
 }
 
 class _GiftCreationScreenState extends State<GiftCreationScreen> {
-  final TextEditingController _giftNameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController priceController = TextEditingController();
+  late GiftCreationController _controller;
 
-  String? _selectedCategory;
-  File? _giftImage;
-  String? _giftImagePath;
-
-  final List<String> _categories = [
-    'Electronics',
-    'Fashion',
-    'Books',
-    'Home Decor',
-    'Toys',
-  ];
-
-  Future<void> _handleImageUpdate(String imagePath) async {
-    setState(() {
-      _giftImagePath = imagePath;
-    });
-  }
-
-  Future<void> _createGift() async {
-    try {
-      if (_giftNameController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        priceController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill in all required fields.')),
-        );
-        return;
-      }
-
-      // await _firestore.collection('gifts').add({
-      //   'name': _giftNameController.text.trim(),
-      //   'description': _descriptionController.text.trim(),
-      //   'category': _selectedCategory,
-      //   'imagePath': _giftImagePath ?? '',
-      //   'createdAt': Timestamp.now(),
-      // });
-          final newGift = GiftModel(
-      giftId: FirebaseFirestore.instance.collection('gifts').doc().id,
+  @override
+  void initState() {
+    super.initState();
+    _controller = GiftCreationController(
+      context: context,
       eventId: widget.eventId,
-      creatorId: UserManager.currentUserId!,
-      name: _giftNameController.text,
-      description: _descriptionController.text,
-      category: _selectedCategory!,
-      price: double.tryParse(priceController.text) ?? 0.0,
-      status: 'Available',
-      imageUrl: _giftImagePath ?? '',
     );
-
-      await GiftModel.createGift(newGift);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gift created successfully!')),
-      );
-      Navigator.pop(context); // Redirect to the previous screen.
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
   }
 
   @override
@@ -102,11 +51,11 @@ class _GiftCreationScreenState extends State<GiftCreationScreen> {
                 imagePath: null,
                 defaultImagePath: 'images/default_gift_picture.png',
                 isEditable: true,
-                onImageUpdate: _handleImageUpdate,
+                onImageUpdate: _controller.handleImageUpdate,
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _giftNameController,
+                controller: _controller.giftNameController,
                 decoration: const InputDecoration(
                   labelText: 'Gift Name',
                   border: OutlineInputBorder(),
@@ -115,16 +64,14 @@ class _GiftCreationScreenState extends State<GiftCreationScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                items: _categories
+                value: _controller.selectedCategory,
+                items: _controller.categories
                     .map((category) => DropdownMenuItem(
                           value: category,
                           child: Text(category),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() {
-                  _selectedCategory = value;
-                }),
+                onChanged: _controller.updateCategory,
                 decoration: const InputDecoration(
                   labelText: 'Category',
                   border: OutlineInputBorder(),
@@ -133,7 +80,7 @@ class _GiftCreationScreenState extends State<GiftCreationScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _descriptionController,
+                controller: _controller.descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Description',
                   border: OutlineInputBorder(),
@@ -142,15 +89,17 @@ class _GiftCreationScreenState extends State<GiftCreationScreen> {
                 maxLines: 4,
               ),
               const SizedBox(height: 24),
-                            Text("Price", style: AppFonts.subtitle),
+              Text("Price", style: AppFonts.subtitle),
               TextField(
-                controller: priceController,
+                controller: _controller.priceController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _createGift,
+                onPressed: _controller.createGift,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   padding: const EdgeInsets.symmetric(vertical: 16),

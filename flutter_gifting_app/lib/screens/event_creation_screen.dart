@@ -1,45 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/event.dart';
 import '../utils/colors.dart';
+import '../controllers/controller_event_creation_screen.dart';
 import '../utils/fonts.dart';
-
 class EventCreationScreen extends StatefulWidget {
-  @override
   final String userId;
 
   EventCreationScreen({required this.userId});
 
+  @override
   _EventCreationScreenState createState() => _EventCreationScreenState();
 }
 
 class _EventCreationScreenState extends State<EventCreationScreen> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  
-  DateTime? selectedDate;
-  String status = "Upcoming";
+  final EventController _controller = EventController();
 
-  Future<void> _createEvent() async {
-    if (nameController.text.isEmpty || categoryController.text.isEmpty || selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all fields")));
-      return;
-    }
-
-    final event = EventModel(
-      eventId: FirebaseFirestore.instance.collection('events').doc().id,
-      userId: widget.userId, 
-      name: nameController.text,
-      category: categoryController.text,
-      date: Timestamp.fromDate(selectedDate!),
-      status: status,
-      location: locationController.text,
-      createdAt: Timestamp.now(),
-    );
-
-    await EventModel.createEvent(event);
-    Navigator.pop(context);
+  @override
+  void dispose() {
+    _controller.dispose(); // Dispose controllers in the controller class
+    super.dispose();
   }
 
   @override
@@ -54,24 +32,31 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Event Name Input
             Text("Event Name", style: AppFonts.subtitle),
             TextField(
-              controller: nameController,
+              controller: _controller.nameController,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             SizedBox(height: 16),
+
+            // Category Input
             Text("Category", style: AppFonts.subtitle),
             TextField(
-              controller: categoryController,
+              controller: _controller.categoryController,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             SizedBox(height: 16),
+
+            // Location Input
             Text("Location", style: AppFonts.subtitle),
             TextField(
-              controller: locationController,
+              controller: _controller.locationController,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             SizedBox(height: 16),
+
+            // Date Picker
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () async {
@@ -83,21 +68,30 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
                 );
                 if (pickedDate != null) {
                   setState(() {
-                    selectedDate = pickedDate;
+                    _controller.selectedDate = pickedDate;
                   });
                 }
               },
               child: Text(
-                selectedDate == null
+                _controller.selectedDate == null
                     ? "Select Date"
-                    : "Selected Date: ${selectedDate!.toLocal()}",
+                    : "Selected Date: ${_controller.selectedDate!.toLocal()}",
                 style: AppFonts.button,
               ),
             ),
             Spacer(),
+
+            // Create Event Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: _createEvent,
+              onPressed: () async {
+                final error = await _controller.validateAndCreateEvent(widget.userId);
+                if (error != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                } else {
+                  Navigator.pop(context); // Navigate back on successful creation
+                }
+              },
               child: Text("Create Event", style: AppFonts.button),
             ),
           ],
@@ -105,5 +99,4 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
       ),
     );
   }
-
 }

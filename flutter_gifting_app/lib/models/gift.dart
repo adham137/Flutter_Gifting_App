@@ -69,6 +69,14 @@ class GiftModel {
     return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
   }
 
+  static Future<List<GiftModel>> getGiftsByUser(String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('gifts')
+        .where('creator_id', isEqualTo: userId)
+        .get();
+    return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
+  }
+
   static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
     await FirebaseFirestore.instance.collection('gifts').doc(giftId).update(data);
   }
@@ -85,7 +93,7 @@ class GiftModel {
       pledgedBy = currentUserId;
       await updateGift(giftId, toFirestore());
 
-      var pledgerName = UserManager.currentUser?.name ?? 'a Friend';
+      var pledgerName = UserModel.getUser(UserManager.currentUserId!) ?? 'a Friend';
 
       // Notifying the creator of the gift
       String? fcmToken = await UserModel.getFcmToken(creatorId);
@@ -121,4 +129,7 @@ class GiftModel {
     return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
   }
 
+  static String generateGiftId() {
+    return FirebaseFirestore.instance.collection('gifts').doc().id;
+  }
 }

@@ -1,125 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../components/add_friend_modal.dart';
 import '../components/sort_options.dart'; 
 import '../components/friend_card.dart';
 
+import '../controllers/controller_home_screen.dart';
+
 import '../models/user.dart';
 
 import '../utils/user_manager.dart';
 
+class HomeScreenView extends StatefulWidget {
+  final String userId = UserManager.currentUserId ?? '';
+  
 
-class HomeScreen extends StatefulWidget {
-  final String userId = UserManager.currentUserId!;
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _HomeScreenViewState createState() => _HomeScreenViewState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<UserModel> friends = [];
-  List<Map<String, dynamic>> friendRequests = [];
-  List<UserModel> filteredFriends = [];
-  TextEditingController searchController = TextEditingController();
-
-  String? selectedSort;
+class _HomeScreenViewState extends State<HomeScreenView> {
+  late HomeController _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadFriends();
-    _loadFriendRequests();
-
-    // Attach listener to searchController
-    searchController.addListener(() {
-      _filterAndSortFriends();
+    _controller = HomeController(onUpdate: () {
+      setState(() {});
     });
-  }
-
-  Future<void> _loadFriends() async {
-    final user = await UserModel.getUser(widget.userId);
-    if (user != null) {
-      final friendDocs = await FirebaseFirestore.instance
-          .collection('users')
-          .where(FieldPath.documentId, whereIn: user.friends)
-          .get();
-      setState(() {
-        friends = friendDocs.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
-        filteredFriends = friends; // Initialize filtered list
-      });
-    }
-  }
-
-  Future<void> _loadFriendRequests() async {
-    final requestDocs = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .collection('friend_requests')
-        .get();
-    setState(() {
-      friendRequests = requestDocs.docs
-          .map((doc) => {'id': doc.id, ...doc.data()})
-          .toList();
-    });
-  }
-
-  Future<void> _acceptFriendRequest(String requestId, String friendId) async {
-    final currentUser = await UserModel.getUser(widget.userId);
-    final friend = await UserModel.getUser(friendId);
-
-    if (currentUser != null && friend != null) {
-      // Add each other's IDs to the friends list
-      await UserModel.updateUser(currentUser.userId, {
-        'friends': FieldValue.arrayUnion([friend.userId])
-      });
-      await UserModel.updateUser(friend.userId, {
-        'friends': FieldValue.arrayUnion([currentUser.userId])
-      });
-
-      // Remove the friend request
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('friend_requests')
-          .doc(requestId)
-          .delete();
-
-      // Reload data
-      await _loadFriends();
-      await _loadFriendRequests();
-    }
-  }
-
-  void _filterAndSortFriends() {
-    final query = searchController.text.toLowerCase();
-
-    setState(() {
-      // Filter friends based on search query
-      filteredFriends = friends
-          .where((friend) => friend.name.toLowerCase().contains(query))
-          .toList();
-
-      // // Apply sorting if selected
-      // if (selectedSort != null) {
-      //   switch (selectedSort) {
-      //     case "Name":
-      //       filteredFriends.sort((a, b) => a.name.compareTo(b.name));
-      //       break;
-      //     case "Category":
-      //       filteredFriends.sort((a, b) => a.category.compareTo(b.category));
-      //       break;
-      //     case "Status":
-      //       filteredFriends.sort((a, b) => a.status.compareTo(b.status));
-      //       break;
-      //   }
-      // }
-    }
-    );
+    _controller.init();
   }
 
   @override
   void dispose() {
-    searchController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -176,20 +89,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             SizedBox(height: 16),
-            // Friend Requests Section
-            if (friendRequests.isNotEmpty) ...[
+            if (_controller.friendRequests.isNotEmpty) ...[
               Text(
                 'Friend Requests',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
-              ...friendRequests.map((request) => Card(
+              ..._controller.friendRequests.map((request) => Card(
                     child: ListTile(
                       title: Text(request['name'] ?? 'Unknown'),
                       subtitle: Text(request['email'] ?? ''),
                       trailing: IconButton(
                         icon: Icon(Icons.check, color: Colors.green),
-                        onPressed: () => _acceptFriendRequest(request['id'], request['requested_by']),
+                        onPressed: () => _controller.acceptFriendRequest(
+                          request['id'],
+                          request['requested_by'],
+                        ),
                       ),
                     ),
                   )),
@@ -200,9 +115,8 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            // Search Bar
             TextField(
-              controller: searchController,
+              controller: _controller.searchController,
               decoration: InputDecoration(
                 labelText: 'Search friends',
                 border: OutlineInputBorder(),
@@ -210,27 +124,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SizedBox(height: 8),
-            // Sort Options
             SortOptions(
-              selectedSort: selectedSort,
+              selectedSort: _controller.selectedSort,
               onSortSelected: (sort) {
-                setState(() {
-                  selectedSort = sort;
-                  _filterAndSortFriends();
-                });
+                _controller.updateSortOption(sort);
               },
             ),
             SizedBox(height: 8),
             Expanded(
-              child: filteredFriends.isEmpty
+              child: _controller.filteredFriends.isEmpty
                   ? Center(child: Text('No friends found'))
                   : ListView.builder(
-                      itemCount: filteredFriends.length,
+                      itemCount: _controller.filteredFriends.length,
                       itemBuilder: (context, index) {
-                        final friend = filteredFriends[index];
-                        return FriendCard(
-                          user: friend,
-                        );
+                        final friend = _controller.filteredFriends[index];
+                        return FriendCard(user: friend);
                       },
                     ),
             ),
@@ -241,7 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) => AddFriendModal(userId: widget.userId),
+            builder: (context) =>
+                AddFriendModal(userId: widget.userId),
           );
         },
         backgroundColor: Colors.purple,

@@ -1,39 +1,36 @@
 import 'package:flutter/material.dart';
+
+import '../controllers/controller_gift_details_screen.dart';
+
 import '../models/gift.dart';
 import '../models/user.dart';
+
 import '../utils/colors.dart';
+
 import '../components/image_handler.dart';
 import '../components/friend_card.dart';
 
-class GiftDetailsScreen extends StatefulWidget {
+class GiftDetailsView extends StatefulWidget {
   final GiftModel gift;
   final bool isEditable;
 
-  const GiftDetailsScreen({
+  const GiftDetailsView({
     Key? key,
     required this.gift,
     this.isEditable = false,
   }) : super(key: key);
 
   @override
-  _GiftDetailsScreenState createState() => _GiftDetailsScreenState();
+  _GiftDetailsViewState createState() => _GiftDetailsViewState();
 }
 
-class _GiftDetailsScreenState extends State<GiftDetailsScreen> {
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _categoryController;
-  late TextEditingController _priceController;
-  String? _imagePath;
+class _GiftDetailsViewState extends State<GiftDetailsView> {
+  late GiftDetailsController _controller;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.gift.name);
-    _descriptionController = TextEditingController(text: widget.gift.description);
-    _categoryController = TextEditingController(text: widget.gift.category);
-    _priceController = TextEditingController(text: widget.gift.price.toString());
-    _imagePath = widget.gift.imageUrl;
+    _controller = GiftDetailsController(widget.gift);
   }
 
   @override
@@ -50,102 +47,66 @@ class _GiftDetailsScreenState extends State<GiftDetailsScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // Image and Status Section
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ImageHandler(
                       radius: 50,
-                      imagePath: _imagePath,
+                      imagePath: _controller.imagePath,
                       isEditable: widget.isEditable,
                       defaultImagePath: 'images/default_gift_picture.png',
-                      onImageUpdate: (path) => setState(() => _imagePath = path),
+                      onImageUpdate: (path) => setState(() => _controller.updateImagePath(path)),
                     ),
-
                     const SizedBox(height: 16),
-
-                    Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: widget.gift.status == 'Pledged' ? Colors.green : Colors.orange,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          widget.gift.status,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                      ),
-                    ),
+                    _controller.buildGiftStatus(),
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
 
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Gift Name',
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: !widget.isEditable,
-                style: TextStyle(color: textColor),
+              // Editable Fields
+              _buildTextField(
+                controller: _controller.nameController,
+                label: 'Gift Name',
+                textColor: textColor,
+                isEditable: widget.isEditable,
               ),
               const SizedBox(height: 16),
-
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: !widget.isEditable,
-                style: TextStyle(color: textColor),
+              _buildTextField(
+                controller: _controller.descriptionController,
+                label: 'Description',
+                textColor: textColor,
+                isEditable: widget.isEditable,
               ),
               const SizedBox(height: 16),
-
-              TextField(
-                controller: _categoryController,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: !widget.isEditable,
-                style: TextStyle(color: textColor),
+              _buildTextField(
+                controller: _controller.categoryController,
+                label: 'Category',
+                textColor: textColor,
+                isEditable: widget.isEditable,
               ),
               const SizedBox(height: 16),
-
-              TextField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: !widget.isEditable,
-                style: TextStyle(color: textColor),
+              _buildTextField(
+                controller: _controller.priceController,
+                label: 'Price',
+                textColor: textColor,
+                isEditable: widget.isEditable,
+                isNumeric: true,
               ),
+
               const SizedBox(height: 16),
 
-                            FutureBuilder<UserModel?>(
-                future: UserModel.getUser(widget.gift.pledgedBy ?? ''),
+              // FutureBuilder for Pledged User
+              FutureBuilder<UserModel?>(
+                future: _controller.fetchPledgedUser(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError || snapshot.data == null) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.hourglass_empty, size: 50, color: Colors.teal),
-                          SizedBox(height: 10),
-                          Text('No user has pledged for this gift.', textAlign: TextAlign.center),
-                        ],
-                      ),
-                    );
+                    return _controller.buildNoPledgeUI();
                   } else {
                     return FriendCard(user: snapshot.data!);
                   }
@@ -154,21 +115,17 @@ class _GiftDetailsScreenState extends State<GiftDetailsScreen> {
 
               const SizedBox(height: 24),
 
+              // Save Button (Editable Mode)
               if (widget.isEditable)
                 ElevatedButton(
                   onPressed: () async {
-                    widget.gift
-                      ..name = _nameController.text
-                      ..description = _descriptionController.text
-                      ..category = _categoryController.text
-                      ..price = double.tryParse(_priceController.text) ?? widget.gift.price
-                      ..imageUrl = _imagePath;
-
-                    await GiftModel.updateGift(widget.gift.giftId, widget.gift.toFirestore());
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Gift details updated successfully!')),
-                    );
-                    Navigator.pop(context);
+                    final result = await _controller.saveGiftDetails();
+                    if (result) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Gift details updated successfully!')),
+                      );
+                      Navigator.pop(context);
+                    }
                   },
                   child: const Text('Save Gift'),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -177,6 +134,26 @@ class _GiftDetailsScreenState extends State<GiftDetailsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // Helper to build text fields
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required Color textColor,
+    required bool isEditable,
+    bool isNumeric = false,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      readOnly: !isEditable,
+      style: TextStyle(color: textColor),
     );
   }
 }

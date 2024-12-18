@@ -21,7 +21,7 @@ class GiftCard extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GiftDetailsScreen(
+        builder: (context) => GiftDetailsView(
           gift: gift,
           isEditable: false, // View mode
         ),
@@ -32,7 +32,7 @@ class GiftCard extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GiftDetailsScreen(
+        builder: (context) => GiftDetailsView(
           gift: gift,
           isEditable: true, // Edit mode
         ),

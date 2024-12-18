@@ -2,100 +2,53 @@ import 'package:flutter/material.dart';
 
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
+import '../utils/user_manager.dart';
 
 import '../controllers/controller_events_screen.dart';
-
-import 'event_details.dart';
-import 'event_creation_screen.dart';
 
 import '../components/event_card.dart';
 import '../components/sort_options.dart';
 import '../components/search_bar.dart';
 
-import '../models/event.dart';
 
-import '../utils/user_manager.dart';
-
+import 'event_creation_screen.dart';
+import 'event_details.dart';
 
 
 class EventsScreen extends StatefulWidget {
   final String userId = UserManager.currentUserId!;
+
+  EventsScreen({Key? key}) : super(key: key);
 
   @override
   _EventsScreenState createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  final TextEditingController searchController = TextEditingController();
-  final EventRepository _eventRepository = EventRepository();
-  List<EventModel> events = [];
-  List<EventModel> filteredEvents = [];
-  String? selectedSort;
-  bool isMyEventsSelected = true;
+  late EventsController _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadEvents();
-    searchController.addListener(_filterAndSortEvents); // Listen to search input
+    _controller = EventsController(onUpdate: _refreshView);
+    _controller.loadEvents();
   }
+
+  void _refreshView() => setState(() {});
 
   @override
   void dispose() {
-    searchController.dispose();
+    _controller.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadEvents() async {
-    final userId = widget.userId;
-    final fetchedEvents = isMyEventsSelected
-        ? await _eventRepository.fetchMyEvents(userId)
-        : await _eventRepository.fetchFriendsEvents(userId);
-    setState(() {
-      events = fetchedEvents;
-      _filterAndSortEvents();
-    });
-  }
-
-  void _filterAndSortEvents() {
-    final query = searchController.text.toLowerCase();
-
-    setState(() {
-      // Filter events based on the search query
-      filteredEvents = events.where((event) {
-        final name = event.name.toLowerCase();
-        final category = event.category.toLowerCase();
-        return name.contains(query) || category.contains(query);
-      }).toList();
-
-      // Sort events based on the selected sort option
-      if (selectedSort != null) {
-        filteredEvents.sort((a, b) {
-          switch (selectedSort) {
-            case "Category":
-              return a.category.compareTo(b.category);
-            case "Name":
-              return a.name.compareTo(b.name);
-            case "Status":
-              return a.status.compareTo(b.status);
-            default:
-              return 0;
-          }
-        });
-      }
-    });
   }
 
   Widget _toggleButton(String text, bool isSelected) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          isMyEventsSelected = (text == "My Events");
-          _loadEvents(); // Refresh events on toggle
-        });
+        _controller.toggleEventView(text == "My Events");
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16, ),
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.background,
           borderRadius: BorderRadius.circular(8),
@@ -104,13 +57,14 @@ class _EventsScreenState extends State<EventsScreen> {
           text,
           style: isSelected ? AppFonts.button : AppFonts.body,
         ),
-        
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final events = _controller.filteredEvents;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.secondary,
@@ -118,54 +72,40 @@ class _EventsScreenState extends State<EventsScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _toggleButton("Friends Events", !isMyEventsSelected),
+            _toggleButton("Friends Events", !_controller.isMyEventsSelected),
             SizedBox(width: 8),
-            _toggleButton("My Events", isMyEventsSelected),
+            _toggleButton("My Events", _controller.isMyEventsSelected),
           ],
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar
-            MySearchBar(controller: searchController),
+            MySearchBar(controller: _controller.searchController),
             SizedBox(height: 16),
-
-            // Sort Options
             SortOptions(
-              selectedSort: selectedSort,
-              onSortSelected: (sort) {
-                setState(() {
-                  selectedSort = sort;
-                  _filterAndSortEvents();
-                });
-              },
+              selectedSort: _controller.selectedSort,
+              onSortSelected: (sort) => _controller.updateSort(sort),
             ),
             SizedBox(height: 16),
-
-            // Event List
             Expanded(
-              child: filteredEvents.isEmpty
+              child: events.isEmpty
                   ? Center(child: Text("No events found", style: AppFonts.body))
                   : ListView.builder(
-                      itemCount: filteredEvents.length,
+                      itemCount: events.length,
                       itemBuilder: (context, index) {
-                        final event = filteredEvents[index];
+                        final event = events[index];
                         return EventCard(
-                          key:ValueKey(event.userId),
+                          key: ValueKey(event.eventId),
                           event: event,
-                          onView: () {
-                            Navigator.push(
+                          onView: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => MyEventPage(event: event), // Pass the event object here
+                              builder: (context) => MyEventPage(event: event),
                             ),
-                          );
-
-                          },
-                          onDeleteUpdateScreen: () => _loadEvents(), // Reload events after deletion
+                          ),
+                          onDeleteUpdateScreen: () => _controller.loadEvents(),
                         );
                       },
                     ),
@@ -173,14 +113,14 @@ class _EventsScreenState extends State<EventsScreen> {
           ],
         ),
       ),
-      floatingActionButton: isMyEventsSelected
+      floatingActionButton: _controller.isMyEventsSelected
           ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EventCreationScreen(userId: widget.userId)),
-                ).then((_) => _loadEvents());
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EventCreationScreen(userId: widget.userId),
+                ),
+              ).then((_) => _controller.loadEvents()),
               backgroundColor: AppColors.primary,
               child: Icon(Icons.add),
             )

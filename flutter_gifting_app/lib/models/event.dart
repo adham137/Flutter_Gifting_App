@@ -65,14 +65,14 @@ class EventModel {
   }
   
 
-static Future<int> getEventsCountByUser(String userId) async {
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('events')
-      .where('user_id', isEqualTo: userId)
-      .get();
+  static Future<int> getEventsCountByUser(String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('user_id', isEqualTo: userId)
+        .get();
 
-  return querySnapshot.docs.length;
-}
+    return querySnapshot.docs.length;
+  }
 
   static Future<void> updateEvent(String eventId, Map<String, dynamic> data) async {
     await FirebaseFirestore.instance.collection('events').doc(eventId).update(data);
@@ -80,5 +80,8 @@ static Future<int> getEventsCountByUser(String userId) async {
 
   static Future<void> deleteEvent(String eventId) async {
     await FirebaseFirestore.instance.collection('events').doc(eventId).delete();
+  }
+  static String generateEventId() {
+    return FirebaseFirestore.instance.collection('events').doc().id;
   }
 }

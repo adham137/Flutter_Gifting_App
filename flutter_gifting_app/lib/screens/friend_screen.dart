@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
-import '../models/event.dart'; // EventModel for events
-import '../models/gift.dart'; // GiftModel for pledged gifts
-import '../components/event_card.dart'; // Import EventCard widget
+
+import '../models/event.dart';
+import '../models/gift.dart';
+
+import '../controllers/controller_friend_screen.dart';
+
+import '../components/event_card.dart';
 import '../components/gift_card.dart';
-import 'event_details.dart'; // Import GiftCard widget
+
+import 'event_details.dart';
 
 class EventsAndGiftsScreen extends StatefulWidget {
-  final String userId; // User ID to fetch events and gifts
+  final String userId;
 
   const EventsAndGiftsScreen({Key? key, required this.userId}) : super(key: key);
 
@@ -18,6 +23,7 @@ class EventsAndGiftsScreen extends StatefulWidget {
 }
 
 class _EventsAndGiftsScreenState extends State<EventsAndGiftsScreen> {
+  final EventsAndGiftsController _controller = EventsAndGiftsController();
   List<EventModel> events = [];
   List<GiftModel> gifts = [];
   String searchQuery = "";
@@ -25,22 +31,16 @@ class _EventsAndGiftsScreenState extends State<EventsAndGiftsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _loadData();
   }
 
-  Future<void> _fetchData() async {
-    try {
-      // Fetch and filter data for the provided userId
-      final fetchedEvents = await EventModel.getEventsByUser(widget.userId);
-
-
-      setState(() {
-        events = fetchedEvents;
-      });
-    } catch (e) {
-      // Handle errors (e.g., show a message)
-      print('Error fetching data: $e');
-    }
+  Future<void> _loadData() async {
+    final fetchedEvents = await _controller.fetchEvents(widget.userId);
+    final fetchedGifts = await _controller.fetchGifts(widget.userId);
+    setState(() {
+      events = fetchedEvents;
+      gifts = fetchedGifts;
+    });
   }
 
   void _onSearch(String query) {
@@ -51,26 +51,20 @@ class _EventsAndGiftsScreenState extends State<EventsAndGiftsScreen> {
 
   void _onSortEvents() {
     setState(() {
-      events.sort((a, b) => a.date.compareTo(b.date));
+      events = _controller.sortEventsByDate(events);
     });
   }
 
   void _onSortGifts() {
     setState(() {
-      gifts.sort((a, b) => a.name.compareTo(b.name));
+      gifts = _controller.sortGiftsByName(gifts);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filter events and gifts based on search query
-    final filteredEvents = events.where((event) {
-      return event.name.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
-
-    final filteredGifts = gifts.where((gift) {
-      return gift.name.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
+    final filteredEvents = _controller.filterEvents(events, searchQuery);
+    final filteredGifts = _controller.filterGifts(gifts, searchQuery);
 
     return Scaffold(
       appBar: AppBar(
@@ -128,20 +122,18 @@ class _EventsAndGiftsScreenState extends State<EventsAndGiftsScreen> {
                   ...filteredEvents.map((event) {
                     return EventCard(
                       event: event,
-                          onView: () {
-                            Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MyEventPage(event: event), // Pass the event object here
-                            ),
-                          );
-
-                          },
-                      onDeleteUpdateScreen: _fetchData, // Refresh data
+                      onView: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MyEventPage(event: event),
+                          ),
+                        );
+                      },
+                      onDeleteUpdateScreen: _loadData,
                     );
                   }).toList(),
                 ],
-
               ],
             ),
           ),
@@ -151,7 +143,6 @@ class _EventsAndGiftsScreenState extends State<EventsAndGiftsScreen> {
   }
 }
 
-// Search Delegate for Events and Gifts
 class EventGiftSearchDelegate extends SearchDelegate {
   final Function(String) onSearch;
   EventGiftSearchDelegate({required this.onSearch, required String query})
@@ -185,12 +176,12 @@ class EventGiftSearchDelegate extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
     onSearch(query);
-    return Container(); // Handle results elsewhere
+    return Container();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
     onSearch(query);
-    return Container(); // Handle suggestions elsewhere
+    return Container();
   }
 }

@@ -70,7 +70,7 @@ class _ParentPageState extends State<ParentPage> {
 
     // List of pages corresponding to the bottom navigation tabs
     final List<Widget> _pages = [
-      HomeScreen(),
+      HomeScreenView(),
       EventsScreen(),
       MyPledgedGiftsPage(),
       ProfilePage(),

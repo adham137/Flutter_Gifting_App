@@ -10,68 +10,32 @@ import '../utils/user_manager.dart';
 
 import '../models/gift.dart';
 
+import '../controllers/controller_my_pledged_gifts_screen.dart';
+
 class MyPledgedGiftsPage extends StatefulWidget {
   @override
   _MyPledgedGiftsPageState createState() => _MyPledgedGiftsPageState();
 }
 
 class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
-  final TextEditingController searchController = TextEditingController();
-  String? selectedSort;
-  List<GiftModel> gifts = [];
-  List<GiftModel> filteredGifts = [];
-  late Future<void> loadGiftsFuture;
+  late MyPledgedGiftsController _controller;
+  late Future<void> _loadGiftsFuture;
 
   @override
   void initState() {
     super.initState();
-    loadGiftsFuture = _loadGifts();
-    searchController.addListener(_filterAndSortGifts);
+    _controller = MyPledgedGiftsController(onGiftsUpdated: _refreshView);
+    _loadGiftsFuture = _controller.loadGifts();
   }
 
-
-  Future<void> _loadGifts() async {
-    try {
-      final fetchedGifts = await GiftModel.getMyPledgedGifts();
-      setState(() {
-        gifts = fetchedGifts;
-        filteredGifts = List.from(gifts);
-      });
-    } catch (e) {
-      print("Error loading gifts: $e");
-    }
-  }
-
-  void _filterAndSortGifts() {
-    final query = searchController.text.toLowerCase();
-
-    setState(() {
-      filteredGifts = gifts.where((gift) {
-        final name = gift.name.toLowerCase();
-        final description = gift.description.toLowerCase();
-        return name.contains(query) || description.contains(query);
-      }).toList();
-
-      if (selectedSort != null) {
-        filteredGifts.sort((a, b) {
-          switch (selectedSort) {
-            case "Category":
-              return a.category.compareTo(b.category);
-            case "Name":
-              return a.name.compareTo(b.name);
-            case "Status":
-              return a.status.compareTo(b.status);
-            default:
-              return 0;
-          }
-        });
-      }
-    });
+  // Trigger a state update when notified by the controller
+  void _refreshView() {
+    setState(() {});
   }
 
   @override
   void dispose() {
-    searchController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -86,7 +50,7 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
         ),
       ),
       body: FutureBuilder<void>(
-        future: loadGiftsFuture,
+        future: _loadGiftsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -96,28 +60,27 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
 
           return Column(
             children: [
-              MySearchBar(controller: searchController),
+              MySearchBar(controller: _controller.searchController),
               const SizedBox(height: 10),
               SortOptions(
-                selectedSort: selectedSort,
+                selectedSort: _controller.selectedSort,
                 onSortSelected: (sort) {
-                  setState(() {
-                    selectedSort = sort;
-                    _filterAndSortGifts();
-                  });
+                  _controller.updateSort(sort);
                 },
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: filteredGifts.isEmpty
+                child: _controller.filteredGifts.isEmpty
                     ? Center(child: Text("No gifts found"))
                     : ListView.builder(
-                        itemCount: filteredGifts.length,
+                        itemCount: _controller.filteredGifts.length,
                         itemBuilder: (context, index) {
-                          final gift = filteredGifts[index];
+                          final gift = _controller.filteredGifts[index];
                           return GiftCard(
-                            gift: filteredGifts[index],
-                            callback: _loadGifts,
+                            gift: gift,
+                            callback: () async {
+                              await _controller.loadGifts();
+                            },
                           );
                         },
                       ),
@@ -129,4 +92,3 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
     );
   }
 }
-
