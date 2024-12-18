@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // For Timestamp to DateTime conversion
 import 'package:uuid/uuid.dart';
 import '../models/event.dart';
+import '../models/gift.dart';
 
 class DatabaseController {
   static Database? _database;
@@ -13,11 +14,11 @@ class DatabaseController {
     if (_database != null) {
       return _database!;
     }
-    // Initialize the database
     _database = await openDatabase(
       join(await getDatabasesPath(), 'local_storage.db'),
-      onCreate: (db, version) {
-        return db.execute(
+      onCreate: (db, version) async {
+        // Creating 'events' table
+        await db.execute(
           '''
           CREATE TABLE events(
             eventId TEXT PRIMARY KEY,
@@ -31,27 +32,78 @@ class DatabaseController {
           )
           ''',
         );
+
+        // Creating 'gifts' table
+        await db.execute(
+          '''
+          CREATE TABLE gifts(
+            giftId TEXT PRIMARY KEY,
+            eventId TEXT,
+            creatorId TEXT,
+            name TEXT,
+            description TEXT,
+            category TEXT,
+            price REAL,
+            imageUrl TEXT,
+            status TEXT,
+            pledgedBy TEXT,
+            FOREIGN KEY (eventId) REFERENCES events(eventId)
+          )
+          ''',
+        );
       },
       version: 1,
     );
     return _database!;
   }
 
+
   // Method to initialize the database explicitly
   static Future<void> initialize() async {
     await database; // This will trigger the database creation if it hasn't been done yet
   }
 
-  // Insert or Update event in the local database
-  static Future<void> upsertEvent(EventModel event) async {
-    final db = await database;
 
-    await db.insert(
-      'events',
-      event.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+  // Upload local data to Firestore
+  static Future<void> uploadLocalDataToFirestore() async {
+    await uploadLocalEventsToFirestore();
   }
+
+
+  // Upload local events to Firestore
+  static Future<void> syncFirestoreDataToLocal(String userId) async {
+    await syncFirestoreEventsToLocal(userId);
+  }
+
+
+  // Delets document from firestore
+  static Future<void> deleteDocumentById(String documentId, String collection) async {
+    // Reference to the Firestore collection
+    final collectionRef = FirebaseFirestore.instance.collection(collection);
+
+    // Get the document by its documentId
+    final doc = await collectionRef.doc(documentId).get();
+
+    // Check if the document exists
+    if (doc.exists) {
+      // If document exists, delete it
+      await doc.reference.delete();
+      print('Document with ID $documentId has been deleted from collection $collection.');
+    } else {
+      // If document does not exist, do nothing
+      print('Document with ID $documentId not found in collection $collection.');
+    }
+  }
+
+
+  // Generate a new ID locally (UUID)
+  static String generateId() {
+    return Uuid().v4();
+  }
+
+
+  /////////////////////////////////////// EVENTS FUNCTIONALITIES ///////////////////////////////////////
+
 
   // Get event from local database
   static Future<EventModel?> getEvent(String eventId) async {
@@ -69,22 +121,34 @@ class DatabaseController {
     }
   }
 
+
   // Get all events by userId from local database
   static Future<List<EventModel>> getEventsByUser(String userId) async {
     final db = await database;
-    final maps = await db.query(
-      'events',
-      where: 'userId = ?',
-      whereArgs: [userId],
-    );
+    try {
+      // Query the database for events related to the userId
+      final maps = await db.query(
+        'events',
+        where: 'userId = ?',
+        whereArgs: [userId],
+      );
 
-    return List.generate(maps.length, (i) {
-      return EventModel.fromMap(maps[i]);
-    });
+      // Return the list of events if there are any
+      return List.generate(maps.length, (i) {
+        return EventModel.fromMap(maps[i]);
+      });
+    } catch (e) {
+      // Log the error to the console for debugging
+      print('Error fetching events for userId $userId: $e');
+
+      // Return an empty list in case of an error
+      return [];
+    }
   }
 
+
   // Upload local data to Firestore
-  static Future<void> uploadLocalDataToFirestore() async {
+  static Future<void> uploadLocalEventsToFirestore() async {
     final db = await database;
     final maps = await db.query('events');
 
@@ -97,8 +161,9 @@ class DatabaseController {
     }
   }
 
+
   // Sync Firestore data to local SQLite database
-  static Future<void> syncFirestoreDataToLocal(String userId) async {
+  static Future<void> syncFirestoreEventsToLocal(String userId) async {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('events')
         .where('user_id', isEqualTo: userId)
@@ -109,6 +174,19 @@ class DatabaseController {
       await upsertEvent(event);
     }
   }
+
+
+  // Insert or Update event in the local database
+  static Future<void> upsertEvent(EventModel event) async {
+    final db = await database;
+
+    await db.insert(
+      'events',
+      event.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
 
   // Update an existing event in the local database
   static Future<void> updateEvent(String eventId, Map<String, dynamic> data) async {
@@ -126,7 +204,8 @@ class DatabaseController {
 
   }
 
-  // Delete event from the local database
+
+  // Delete event from the local database //////////////////////////////////////////// <-- YOU NEED TO DELETE THE GIFTS ASSOCIATED WITH THE EVENT
   static Future<void> deleteEvent(String eventId) async {
     final db = await database;
     try {
@@ -144,12 +223,8 @@ class DatabaseController {
 
   }
 
-  // Generate a new ID locally (UUID)
-  static String generateId() {
-    return Uuid().v4();
-  }
 
-  // Get the count of events by user from the local database
+  // Get the count of events by userId from the local database
   static Future<int> getEventsCountByUser(String userId) async {
     final db = await database;
     final maps = await db.query(
@@ -162,23 +237,99 @@ class DatabaseController {
   }
 
 
-  // Delets documents from firestore
-  static Future<void> deleteDocumentById(String documentId, String collection) async {
-    // Reference to the Firestore collection
-    final collectionRef = FirebaseFirestore.instance.collection(collection);
+  /////////////////////////////////////// GIFTS FUNCTIONALITIES ///////////////////////////////////////
 
-    // Get the document by its documentId
-    final doc = await collectionRef.doc(documentId).get();
 
-    // Check if the document exists
-    if (doc.exists) {
-      // If document exists, delete it
-      await doc.reference.delete();
-      print('Document with ID $documentId has been deleted from collection $collection.');
-    } else {
-      // If document does not exist, do nothing
-      print('Document with ID $documentId not found in collection $collection.');
+  // Update the status of a gift, Called when notified about a change in status  
+  static void updateGiftStatus(String giftId, String status) async {
+    final db = await database;
+    try {
+      await db.update(
+        'gifts',
+        {'status': status},
+        where: 'giftId = ?',
+        whereArgs: [giftId],
+      );
+    } catch (e) {
+      print('Error updating gift status: $e');
     }
+  }
+
+
+  // Fetch gifts by eventId
+  static Future<List<GiftModel>> getGiftsByEventId(String eventId) async {
+    final db = await database;
+    final maps = await db.query(
+      'gifts',
+      where: 'eventId = ?',
+      whereArgs: [eventId],
+    );
+
+    // If there are gifts related to the event, map them to GiftModel
+    return List.generate(maps.length, (i) {
+      return GiftModel.fromMap(maps[i]);
+    });
+  }
+
+
+  // Fetch gifts by creatorId
+  static Future<List<GiftModel>> getGiftsByUserId(String creatorId) async {
+    final db = await database;
+    final maps = await db.query(
+      'gifts',
+      where: 'creatorId = ?',
+      whereArgs: [creatorId],
+    );
+
+    // If there are gifts related to the creator, map them to GiftModel
+    return List.generate(maps.length, (i) {
+      return GiftModel.fromMap(maps[i]);
+    });
+  }
+ 
+ 
+  // Delete a gift from the database
+  static Future<void> deleteGift(String giftId) async {
+    final db = await database;
+    try {
+      await db.delete(
+        'gifts',
+        where: 'giftId = ?',
+        whereArgs: [giftId],
+      );
+      // Also delete the gift from Firestore
+      deleteDocumentById(giftId, 'gifts');
+    } catch (e) {
+      print('Error deleting gift: $e');
+    }
+  }
+  
+  
+  // Update an existing gift in the database
+  static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
+    final db = await database;
+    try {
+      await db.update(
+        'gifts',
+        data,
+        where: 'giftId = ?',
+        whereArgs: [giftId],
+      );
+    } catch (e) {
+      print('Error updating gift: $e');
+    }
+  }
+  
+  
+  // Insert or Update a gift in the database
+  static Future<void> upsertGift(GiftModel gift) async {
+    final db = await database;
+
+    await db.insert(
+      'gifts',
+      gift.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace, // Will replace if the giftId exists
+    );
   }
 
 }

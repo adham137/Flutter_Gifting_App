@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/auth_io.dart';
 import '../main.dart';
+import 'local_database_controller.dart';
 
 class FCMService {
   final Map<String, dynamic> serviceAccountJson;
@@ -102,6 +103,7 @@ class FCMService {
     print('#################### Received notification: $title - $body - $giftId - $status');
 
     // Update local database (either by pulling data from firestore or from the notification payload)
+    DatabaseController.updateGiftStatus(giftId, status);
 
     // Notify the user by sending an in-app notification
     showInAppNotification(title, body);

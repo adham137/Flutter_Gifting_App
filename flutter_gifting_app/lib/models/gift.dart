@@ -57,11 +57,20 @@ class GiftModel {
       'pledged_by': pledgedBy,
     };
   }
-  static Future<void> createGift(GiftModel gift) async {
-    await FirebaseFirestore.instance.collection('gifts').doc(gift.giftId).set(gift.toFirestore());
+
+  void publishGift() async {
+    await FirebaseFirestore.instance
+    .collection('gifts')
+    .doc(this.giftId)
+    .set(this.toFirestore());
   }
 
   static Future<List<GiftModel>> getGiftsByEvent(String eventId) async {
+    // If it is my event, get the gifts from the local database
+    if(DatabaseController.getEvent(eventId) != null){
+      return await DatabaseController.getGiftsByEventId(eventId);
+    }
+    // Else if it is not my event, get the gifts from the firestore
     final querySnapshot = await FirebaseFirestore.instance
         .collection('gifts')
         .where('event_id', isEqualTo: eventId)
@@ -69,20 +78,17 @@ class GiftModel {
     return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
   }
 
-  static Future<List<GiftModel>> getGiftsByUser(String userId) async {
+  static Future<List<GiftModel>> getGiftsByUser(String creatorId) async {
+    // If it is my gifts, get the gifts from the local database
+    if(UserManager.currentUserId == creatorId){
+      return await DatabaseController.getGiftsByUserId(creatorId);
+    }
+    // Else if it is not my gifts, get the gifts from the firestore
     final querySnapshot = await FirebaseFirestore.instance
         .collection('gifts')
-        .where('creator_id', isEqualTo: userId)
+        .where('creator_id', isEqualTo: creatorId)
         .get();
     return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
-  }
-
-  static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
-    await FirebaseFirestore.instance.collection('gifts').doc(giftId).update(data);
-  }
-
-  static Future<void> deleteGift(String giftId) async {
-    await FirebaseFirestore.instance.collection('gifts').doc(giftId).delete();
   }
 
    // Pledge the gift
@@ -148,9 +154,7 @@ class GiftModel {
     return querySnapshot.docs.map((doc) => GiftModel.fromFirestore(doc)).toList();
   }
 
-  static String generateGiftId() {
-    return FirebaseFirestore.instance.collection('gifts').doc().id;
-  }
+
 
   ///////////////////////////// SQLITE /////////////////////////////
   Map<String, dynamic> toMap() {
@@ -183,16 +187,20 @@ class GiftModel {
     );
   }
 
-  // static Future<void> createGift(GiftModel gift) async {
-  //   await DatabaseController.upsertGift(gift);
-  // }
+  static Future<void> createGift(GiftModel gift) async {
+    await DatabaseController.upsertGift(gift);
+  }
 
-  // static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
-  //   await DatabaseController.updateGift(giftId, data);
-  // }
+  static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
+    await DatabaseController.updateGift(giftId, data);
+  }
 
-  // static Future<void> deleteGift(String giftId) async {
-  //   await DatabaseController.deleteGift(giftId);
-  // }
+  static Future<void> deleteGift(String giftId) async {
+    await DatabaseController.deleteGift(giftId);
+  }
+
+  static String generateGiftId() {
+    return DatabaseController.generateId();
+  }
 
 }
