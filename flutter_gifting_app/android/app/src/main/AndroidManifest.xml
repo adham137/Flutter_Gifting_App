@@ -43,11 +43,15 @@
         </intent>
     </queries>
 
-     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Required to for displaying images -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="30" />	
     
     <!-- For Android 13+ (optional for gallery access to manage media files) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <!-- Required to show notifications-->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> 
+
+    
 </manifest>

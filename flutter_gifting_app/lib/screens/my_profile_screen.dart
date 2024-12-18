@@ -64,6 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         isEditable: true,
                         onImageUpdate: (imagePath) async {
                           await controller.updateProfileImage(imagePath);
+                          print('###################################### Image updated: $imagePath');
                           await _reloadUserData();
                         },
                       ),
@@ -166,8 +167,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _reloadUserData() async {
     final updatedUser = await controller.fetchUserData();
+    final updatedEvents = await controller.loadUserEvents();
     setState(() {
+      areEventsLoading = true;
       currentUser = updatedUser;
+      userEvents = updatedEvents;
+      areEventsLoading = false;
     });
   }
 }

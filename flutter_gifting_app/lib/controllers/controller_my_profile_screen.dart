@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/user.dart';
 import '../models/event.dart';
+import '../utils/local_database_controller.dart';
 import '../utils/user_manager.dart';
 import 'package:flutter/material.dart';
 
@@ -59,6 +60,7 @@ class ProfilePageController {
   void signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
+      await DatabaseController.uploadLocalDataToFirestore();                  // Uplaod data from local to firestore
       Navigator.pushNamedAndRemoveUntil(context, '/sign-in', (route) => false);
     } catch (e) {
       _showSnackBar('Error signing out: $e');

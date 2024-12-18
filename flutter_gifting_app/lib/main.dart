@@ -13,6 +13,7 @@ import 'screens/parent_page.dart';
 
 import '../utils/user_manager.dart';
 import 'utils/global_notifications_service.dart';
+import 'utils/local_database_controller.dart';
 import 'utils/local_notifications_service.dart';
 
 void main() async {
@@ -20,6 +21,8 @@ void main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp();
+  // Initialize SQLITE
+  await DatabaseController.initialize(); 
 
   // Check for current user
   String? currentUserId = FirebaseAuth.instance.currentUser?.uid;

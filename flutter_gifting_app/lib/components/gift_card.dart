@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/gift_details_screen.dart';
 import '../utils/user_manager.dart';
 import 'action_button.dart';

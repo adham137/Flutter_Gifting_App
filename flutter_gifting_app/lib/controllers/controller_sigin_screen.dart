@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/user_manager.dart';
+import '../utils/local_database_controller.dart';
 
 class SignInController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -36,6 +37,7 @@ class SignInController {
       User? user = userCredential.user;
       if (user != null) {
         UserManager.updateUserId(user.uid); // Update the global user ID
+        await DatabaseController.syncFirestoreDataToLocal(user.uid);  // Fetch data from firestore and sync local storage
       }
 
       return null; // Sign-in successful, no errors

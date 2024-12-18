@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../utils/image_utils.dart';
@@ -29,8 +30,20 @@ class _ImageHandlerState extends State<ImageHandler> {
   @override
   void initState() {
     super.initState();
+    _loadImageFile();
+  }
+
+  void _loadImageFile() {
     if (widget.imagePath != null && widget.imagePath!.isNotEmpty) {
-      _imageFile = File(widget.imagePath!);
+      try {
+        _imageFile = File(widget.imagePath!);
+        if (!_imageFile!.existsSync()) {
+          _imageFile = null; // Reset if the file does not exist
+        }
+      } catch (e) {
+        print("Error loading image file: $e");
+        _imageFile = null; // Handle exception gracefully
+      }
     }
   }
 
@@ -49,14 +62,29 @@ class _ImageHandlerState extends State<ImageHandler> {
     // Pick the image
     File? selectedImage = await ImageUtils.pickImageFromGallery();
     if (selectedImage != null) {
-      setState(() {
-        _imageFile = selectedImage;
-      });
+      try {
+        // Save the image locally and update the full path
+        String? savedFullPath = await ImageUtils.saveImageWithFullPath(
+          selectedImage,
+          UserManager.currentUserId!,
+        );
+        print("########################################## Saved image full path: $savedFullPath");
 
-      // Save the image locally
-      String? savedPath = await ImageUtils.saveImageLocally(selectedImage, UserManager.currentUserId!);
-      if (savedPath != null && widget.onImageUpdate != null) {
-        widget.onImageUpdate!(savedPath); // Notify the parent widget of the update
+        if (savedFullPath != null) {
+          setState(() {
+            _imageFile = File(savedFullPath);
+          });
+
+          // Notify the parent widget of the updated path
+          if (widget.onImageUpdate != null) {
+            widget.onImageUpdate!(savedFullPath);
+          }
+        }
+      } catch (e) {
+        print("Error saving image: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save image.')),
+        );
       }
     }
   }
