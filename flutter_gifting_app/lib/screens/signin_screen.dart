@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
-import '../utils/user_manager.dart'; // Import the global user manager
+
+import '../controllers/controller_sigin_screen.dart'; // Import the global user manager
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -12,36 +13,32 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SignInController _controller = SignInController();
 
-  Future<void> _signIn() async {
-    try {
-      // Perform sign-in
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  void _handleSignIn() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      final error = await _controller.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      // Update the global user ID
-      User? user = userCredential.user;
-      if (user != null) {
-        UserManager.updateUserId(user.uid);
+      setState(() => _isLoading = false);
+
+      if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign-in successful!')),
+        );
+        Navigator.pushNamedAndRemoveUntil(context, '/parent', (route) => false);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-in successful!')),
-      );
-
-      // Navigate to the parent screen
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/parent',
-        (route) => false, // Remove all previous routes
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
     }
   }
 
@@ -55,42 +52,52 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                hintText: 'Enter your email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  hintText: 'Enter your email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (value) => _controller.validateEmail(value ?? ''),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Enter your password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Enter your password',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) => _controller.validatePassword(value ?? ''),
               ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _signIn,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+              SizedBox(height: 24),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _handleSignIn,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                      ),
+                      child: Text('Sign In', style: AppFonts.button),
+                    ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/sign-up');
+                },
+                child: Text(
+                  'Don\'t have an account? Sign Up',
+                  style: AppFonts.body,
+                ),
               ),
-              child: Text('Sign In', style: AppFonts.button),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/sign-up');
-              },
-              child: Text('Don\'t have an account? Sign Up', style: AppFonts.body),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../components/image_handler.dart';
+
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
-import '../models/user.dart';
-import '../utils/image_utils.dart';
-import '../utils/user_manager.dart';
+
+import '../controllers/controller_signup_screen.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -19,8 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SignUpController _controller = SignUpController();
 
   File? _profileImage;
   String? _profileImagePath;
@@ -29,40 +28,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() {
       _profileImagePath = imagePath;
     });
-  }
-  
-  Future<void> _signUp() async {
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-
-      User? firebaseUser = userCredential.user;
-      if (firebaseUser != null) {
-        UserModel user = UserModel(
-          userId: firebaseUser.uid,
-          name: _nameController.text.trim(),
-          email: _emailController.text.trim(),
-          phoneNumber: _phoneController.text.trim(),
-          profilePictureUrl: _profileImagePath,
-          createdAt: Timestamp.now(),
-          friends: [],
-          pushNotifications: false,
-        );
-        await UserModel.createUser(user);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created successfully!')),
-        );
-
-        Navigator.pushNamedAndRemoveUntil(context, '/parent', (route) => false);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
   }
 
   @override
@@ -82,9 +47,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ImageHandler(
                 radius: 50,
                 imagePath: null,
-                defaultImagePath: 'assets/default_profile.png',
+                defaultImagePath: 'images/default_profile_picture.png',
                 isEditable: true,
-                onImageUpdate:_handleImageUpdate,
+                onImageUpdate: _handleImageUpdate,
               ),
               const SizedBox(height: 16),
               TextField(
@@ -125,7 +90,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _signUp,
+                onPressed: () async {
+                  final result = await _controller.signUp(
+                    _nameController.text,
+                    _emailController.text,
+                    _phoneController.text,
+                    _passwordController.text,
+                    _profileImagePath,
+                    context,
+                  );
+                  if (result != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(result)),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                 ),
@@ -138,4 +117,3 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
-
