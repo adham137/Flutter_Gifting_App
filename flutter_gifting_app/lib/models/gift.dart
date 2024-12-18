@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/local_database_controller.dart';
 import '../utils/user_manager.dart';
 import 'user.dart';
 
@@ -26,7 +27,7 @@ class GiftModel {
     required this.status,
     this.pledgedBy,
   });
-
+  ///////////////////////////// FIRESTORE /////////////////////////////
   factory GiftModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return GiftModel(
@@ -56,7 +57,6 @@ class GiftModel {
       'pledged_by': pledgedBy,
     };
   }
-
   static Future<void> createGift(GiftModel gift) async {
     await FirebaseFirestore.instance.collection('gifts').doc(gift.giftId).set(gift.toFirestore());
   }
@@ -93,14 +93,18 @@ class GiftModel {
       pledgedBy = currentUserId;
       await updateGift(giftId, toFirestore());
 
-      var pledgerName = UserModel.getUser(UserManager.currentUserId!) ?? 'a Friend';
+      var pledgerName = await UserModel.getUser(UserManager.currentUserId!).then((user) => user?.name) ?? 'a Friend';
 
       // Notifying the creator of the gift
       String? fcmToken = await UserModel.getFcmToken(creatorId);
       await UserManager.fcmService!.sendNotification(
         fcmToken: fcmToken!,
         title: 'Gift Pledged by $pledgerName !',
-        body: '$pledgerName has pledged $name ! 🎉',
+        body: '''$pledgerName has pledged your gift '$name' ! 🎉''',
+        data: {
+          'giftId': giftId,
+          'status': status,
+        }
       );
       print('########################### Sentt');
     }
@@ -113,6 +117,21 @@ class GiftModel {
       pledgedBy = null;
       await updateGift(giftId, toFirestore());
     }
+
+    var pledgerName = await UserModel.getUser(UserManager.currentUserId!).then((user) => user?.name) ?? 'a Friend';
+
+    // Notifying the creator of the gift
+    String? fcmToken = await UserModel.getFcmToken(creatorId);
+    await UserManager.fcmService!.sendNotification(
+      fcmToken: fcmToken!,
+      title: 'Gift Un-Pledged by $pledgerName !',
+      body: '''$pledgerName has un-pledged your gift '$name' ! 😢''',
+      data: {
+        'giftId': giftId,
+        'status': status,
+      }
+    );
+    print('########################### Sentt');
   }
 
   static Future<List<GiftModel>> getMyPledgedGifts() async {
@@ -132,4 +151,48 @@ class GiftModel {
   static String generateGiftId() {
     return FirebaseFirestore.instance.collection('gifts').doc().id;
   }
+
+  ///////////////////////////// SQLITE /////////////////////////////
+  Map<String, dynamic> toMap() {
+    return {
+      'giftId': giftId,
+      'eventId': eventId,
+      'creatorId': creatorId,
+      'name': name,
+      'description': description,
+      'category': category,
+      'price': price,
+      'imageUrl': imageUrl,
+      'status': status,
+      'pledgedBy': pledgedBy,
+    };
+  }
+
+  factory GiftModel.fromMap(Map<String, dynamic> map) {
+    return GiftModel(
+      giftId: map['giftId'],
+      eventId: map['eventId'],
+      creatorId: map['creatorId'],
+      name: map['name'],
+      description: map['description'],
+      category: map['category'],
+      price: map['price'],
+      imageUrl: map['imageUrl'],
+      status: map['status'],
+      pledgedBy: map['pledgedBy'],
+    );
+  }
+
+  // static Future<void> createGift(GiftModel gift) async {
+  //   await DatabaseController.upsertGift(gift);
+  // }
+
+  // static Future<void> updateGift(String giftId, Map<String, dynamic> data) async {
+  //   await DatabaseController.updateGift(giftId, data);
+  // }
+
+  // static Future<void> deleteGift(String giftId) async {
+  //   await DatabaseController.deleteGift(giftId);
+  // }
+
 }

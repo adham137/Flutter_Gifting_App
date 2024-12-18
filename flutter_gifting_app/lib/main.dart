@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,6 +17,9 @@ import 'utils/global_notifications_service.dart';
 import 'utils/local_database_controller.dart';
 import 'utils/local_notifications_service.dart';
 
+// Initialize the notification scaffold
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -33,10 +37,10 @@ void main() async {
   // Request notification permission
   await LocalNotificationsService().requestPermission();
 
-  // Initialize FCMService
+  // Initialize FCMService and notification service
   final fcmService = await FCMService.initialize();
   UserManager.updateFCMService(fcmService);
-
+  
   // Run the app
   runApp(HedieatyApp());
 }
@@ -45,6 +49,7 @@ class HedieatyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Hediety App',
       theme: ThemeData(
         primarySwatch: Colors.purple,

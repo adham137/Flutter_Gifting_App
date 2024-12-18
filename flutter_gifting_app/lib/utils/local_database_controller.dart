@@ -134,7 +134,10 @@ class DatabaseController {
       'events',
       where: 'eventId = ?',
       whereArgs: [eventId],
-    );
+      );
+      // Delete the event from Firestore
+      deleteDocumentById(eventId, 'events');
+      // YOU NEED TO DELETE THE GIFTS ASSOCIATED WITH THE EVENT FROM THE SQLITE AND FIRESTORE
     } catch (e) {
       print('Error deleting event: $e');
     }
@@ -157,4 +160,25 @@ class DatabaseController {
 
     return maps.length;
   }
+
+
+  // Delets documents from firestore
+  static Future<void> deleteDocumentById(String documentId, String collection) async {
+    // Reference to the Firestore collection
+    final collectionRef = FirebaseFirestore.instance.collection(collection);
+
+    // Get the document by its documentId
+    final doc = await collectionRef.doc(documentId).get();
+
+    // Check if the document exists
+    if (doc.exists) {
+      // If document exists, delete it
+      await doc.reference.delete();
+      print('Document with ID $documentId has been deleted from collection $collection.');
+    } else {
+      // If document does not exist, do nothing
+      print('Document with ID $documentId not found in collection $collection.');
+    }
+  }
+
 }

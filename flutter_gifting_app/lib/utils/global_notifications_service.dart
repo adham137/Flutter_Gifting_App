@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/auth_io.dart';
+import '../main.dart';
 
 class FCMService {
   final Map<String, dynamic> serviceAccountJson;
@@ -16,6 +19,13 @@ class FCMService {
     );
 
     final jsonData = json.decode(jsonString);
+
+    // Add Listener to the notifications, activated when the app is in the foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      onNotificationRecieved(message);
+    });
+
+
     return FCMService(serviceAccountJson: jsonData);
   }
 
@@ -82,5 +92,72 @@ class FCMService {
       rethrow;
     }
   }
+
+  static void onNotificationRecieved(RemoteMessage message) {
+    // Extract notification data
+    String title = message.notification?.title ?? "";
+    String body = message.notification?.body ?? "";
+    String giftId = message.data?['giftId'] ?? "";
+    String status = message.data?['status'] ?? "";
+    print('#################### Received notification: $title - $body - $giftId - $status');
+
+    // Update local database (either by pulling data from firestore or from the notification payload)
+
+    // Notify the user by sending an in-app notification
+    showInAppNotification(title, body);
+  }
+
+
+static void showInAppNotification(String title, String body) {
+  OverlayEntry? overlayEntry; // Keep it nullable here for initial assignment
+
+  overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      top: MediaQuery.of(context).padding.top + 8,
+      left: 16,
+      right: 16,
+      child: Material(
+        elevation: 4.0,
+        borderRadius: BorderRadius.circular(20.0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(body),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      overlayEntry?.remove(); // Safe call
+                      overlayEntry = null;    // Very important!
+                    },
+                    child: const Text('Dismiss'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  navigatorKey.currentState?.overlay?.insert(overlayEntry!); // Use ! here because we just assigned it
+
+  Future.delayed(const Duration(seconds: 5), () {
+    if (overlayEntry != null) { // Check for null before removing
+      overlayEntry!.remove();   // Use ! here because we checked for null
+      overlayEntry = null;      // Very important!
+    }
+  });
+}
+
 
 }
