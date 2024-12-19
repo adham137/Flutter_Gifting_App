@@ -9,6 +9,7 @@ import '../controllers/controller_home_screen.dart';
 import '../models/user.dart';
 
 import '../utils/user_manager.dart';
+import 'event_creation_screen.dart';
 
 class HomeScreenView extends StatefulWidget {
   final String userId = UserManager.currentUserId ?? '';
@@ -79,7 +80,12 @@ class _HomeScreenViewState extends State<HomeScreenView> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventCreationScreen(userId: widget.userId),
+                      ),
+                    ),
                   icon: Icon(Icons.add),
                   label: Text('Add Event'),
                   style: ElevatedButton.styleFrom(

@@ -50,11 +50,17 @@ class EventModel {
     };
   }
 
-  void publishEvent() async {
-    await FirebaseFirestore.instance
-    .collection('events')
-    .doc(this.eventId)
-    .set(this.toFirestore());
+  Future<bool?> publishEvent() async {
+    try{
+      await FirebaseFirestore.instance
+      .collection('events')
+      .doc(this.eventId)
+      .set(this.toFirestore());
+      return true;
+    }catch (e){
+      print('Error publishing event: $e');
+      return false;
+    }
   }
 
   static Future<List<EventModel>> getEventsByUser(String userId) async {
@@ -88,32 +94,32 @@ class EventModel {
   /////////////////////////////////////////SQLITE/////////////////////////////////////////
   
   // Map for SQLite Database
-  Map<String, dynamic> toMap() {
-    return {
-      'eventId': eventId,
-      'userId': userId,
-      'name': name,
-      'category': category,
-      'date': date.seconds, // Convert Timestamp to seconds
-      'status': status,
-      'location': location,
-      'createdAt': createdAt.seconds, // Convert Timestamp to seconds
-    };
-  }
+Map<String, dynamic> toMap() {
+  return {
+    'eventId': eventId,
+    'userId': userId,
+    'name': name,
+    'category': category,
+    'date': date.millisecondsSinceEpoch, // Convert Timestamp to milliseconds
+    'status': status,
+    'location': location,
+    'createdAt': createdAt.millisecondsSinceEpoch, // Convert Timestamp to milliseconds
+  };
+}
 
-  // Map from SQLite Database
-  factory EventModel.fromMap(Map<String, dynamic> map) {
-    return EventModel(
-      eventId: map['eventId'],
-      userId: map['userId'],
-      name: map['name'],
-      category: map['category'],
-      date: Timestamp.fromMillisecondsSinceEpoch(map['date']),
-      status: map['status'],
-      location: map['location'],
-      createdAt: Timestamp.fromMillisecondsSinceEpoch(map['createdAt']),
-    );
-  }
+// Map from SQLite Database
+factory EventModel.fromMap(Map<String, dynamic> map) {
+  return EventModel(
+    eventId: map['eventId'],
+    userId: map['userId'],
+    name: map['name'],
+    category: map['category'],
+    date: Timestamp.fromMillisecondsSinceEpoch(map['date']), // Ensure date is in milliseconds
+    status: map['status'],
+    location: map['location'],
+    createdAt: Timestamp.fromMillisecondsSinceEpoch(map['createdAt']), // Ensure createdAt is in milliseconds
+  );
+}
 
   static Future<void> createEvent(EventModel event) async {
     // await FirebaseFirestore.instance.collection('events').doc(event.eventId).set(event.toFirestore());

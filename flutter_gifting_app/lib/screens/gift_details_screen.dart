@@ -9,6 +9,7 @@ import '../utils/colors.dart';
 
 import '../components/image_handler.dart';
 import '../components/friend_card.dart';
+import '../utils/user_manager.dart';
 
 class GiftDetailsView extends StatefulWidget {
   final GiftModel gift;
@@ -99,6 +100,7 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
               const SizedBox(height: 16),
 
               // FutureBuilder for Pledged User
+              widget.gift.creatorId == UserManager.currentUserId ? 
               FutureBuilder<UserModel?>(
                 future: _controller.fetchPledgedUser(),
                 builder: (context, snapshot) {
@@ -111,9 +113,31 @@ class _GiftDetailsViewState extends State<GiftDetailsView> {
                     return FriendCard(user: snapshot.data!);
                   }
                 },
-              ),
+              ) : const SizedBox() ,
 
               const SizedBox(height: 24),
+              // Publish Button 
+              ElevatedButton(
+                onPressed: () async {
+                  final result = await widget.gift.publishGift();
+                  if (result!) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Gift published successfully!')),
+                    );
+                    Navigator.pop(context);
+                  }else{
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error publishing gift. Please try again.')),
+                    );
+                  }
+                  
+                },
+                child: const Text('Publish Gift'),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
+              ),
+
+              const SizedBox(height: 16),
+
 
               // Save Button (Editable Mode)
               if (widget.isEditable)

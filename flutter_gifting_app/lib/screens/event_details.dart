@@ -7,6 +7,7 @@ import '../components/sort_options.dart';
 import '../components/gift_card.dart';
 import '../utils/colors.dart';
 import '../utils/fonts.dart';
+import '../utils/user_manager.dart';
 import 'gift_creation_screen.dart';
 
 class MyEventPage extends StatefulWidget {
@@ -94,6 +95,7 @@ class _MyEventPageState extends State<MyEventPage> {
               const Center(child: Text("No gifts available")),
 
             // Add Gift Button
+            if(widget.event.userId == UserManager.currentUserId)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -119,6 +121,31 @@ class _MyEventPageState extends State<MyEventPage> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            if(widget.event.userId == UserManager.currentUserId)
+              // Publish Button 
+            Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  final result = await _controller.publishEventandGifts();
+                  if (result!) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Event published successfully!')),
+                    );
+                    Navigator.pop(context);
+                  }else{
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error publishing event. Please try again.')),
+                    );
+                  }
+                  
+                },
+                child: const Text('Publish Event and Gifts'),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
+              ),
+            ),
+
+              
           ],
         ),
       ),

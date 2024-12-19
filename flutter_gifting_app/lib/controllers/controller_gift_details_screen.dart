@@ -87,4 +87,5 @@ class GiftDetailsController {
     await GiftModel.updateGift(_gift.giftId, _gift.toFirestore());
     return true;
   }
+
 }

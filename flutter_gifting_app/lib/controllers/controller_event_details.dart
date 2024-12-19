@@ -47,4 +47,18 @@ class MyEventController {
     selectedSort = sortOption;
     filterAndSortGifts();
   }
+
+  // Publish the event to firestore along with its associated gifts
+  Future<bool> publishEventandGifts() async {
+    try {
+      await event.publishEvent();
+      for (var gift in gifts) {
+        await gift.publishGift();
+      }
+      return true;
+    } catch (e) {
+      print('Error publishing event and gifts: $e');
+      return false;
+    }
+  }
 }

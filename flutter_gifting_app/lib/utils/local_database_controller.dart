@@ -218,7 +218,11 @@ class DatabaseController {
       );
       // Delete the event from Firestore
       deleteDocumentById(eventId, 'events');
+
       // YOU NEED TO DELETE THE GIFTS ASSOCIATED WITH THE EVENT FROM THE SQLITE AND FIRESTORE
+      for(var gift in await DatabaseController.getGiftsByEventId(eventId)) {
+        await DatabaseController.deleteGift(gift.giftId);
+      }
     } catch (e) {
       print('Error deleting event: $e');
     }

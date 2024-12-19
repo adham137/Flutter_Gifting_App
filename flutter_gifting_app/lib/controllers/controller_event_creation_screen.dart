@@ -27,7 +27,6 @@ class EventController {
       location: locationController.text,
       createdAt: Timestamp.now(), // Current time as a timestamp
     );
-
     // Saves event through the model
     await EventModel.createEvent(event);
     return null; // No errors

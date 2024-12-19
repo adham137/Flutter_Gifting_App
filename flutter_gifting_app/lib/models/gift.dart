@@ -58,11 +58,17 @@ class GiftModel {
     };
   }
 
-  void publishGift() async {
-    await FirebaseFirestore.instance
-    .collection('gifts')
-    .doc(this.giftId)
-    .set(this.toFirestore());
+  Future<bool?> publishGift() async {
+    try{
+      await FirebaseFirestore.instance
+          .collection('gifts')
+          .doc(this.giftId)
+          .set(this.toFirestore());
+      return true;  
+    } catch (e) {
+      print('Error publishing gift: $e');
+      return false;
+    }
   }
 
   static Future<List<GiftModel>> getGiftsByEvent(String eventId) async {
