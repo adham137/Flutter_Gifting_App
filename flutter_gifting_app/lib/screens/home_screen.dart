@@ -102,7 +102,7 @@ class _HomeScreenViewState extends State<HomeScreenView> {
                             EventCreationScreen(userId: widget.userId),
                       ),
                     ),
-                    icon: Icon(Icons.add, color: AppColors.teal, size: 25),
+                    icon: Icon(Icons.add, color:Colors.yellowAccent, size: 25),
                   ),
                 ],
               ),
@@ -127,10 +127,7 @@ class _HomeScreenViewState extends State<HomeScreenView> {
                   children: [
                     Text(
                       'Friend Requests',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppFonts.t3,
                     ),
                     SizedBox(height: 8),
                     ..._controller.friendRequests.map(
@@ -224,7 +221,7 @@ class _HomeScreenViewState extends State<HomeScreenView> {
           );
         },
         backgroundColor: AppColors.purple,
-        child: Icon(Icons.person_add, color: AppColors.teal,),
+        child: Icon(Icons.person_add, color: AppColors.yellow,),
         
       ),
       // floatingActionButton: ActionButton(

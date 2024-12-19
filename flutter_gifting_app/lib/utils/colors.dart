@@ -16,6 +16,7 @@ class AppColors {
   static const Color babyBlue = Color.fromRGBO(184, 226, 242, 100);
   static const Color lightPurple = Color.fromRGBO(144, 92, 163, 1);
   static const Color darkGrey = Color.fromRGBO(217, 217, 217, 100);
+  static const Color yellow = Colors.yellowAccent;
 
   static const Map<String, Color> statusColors = {
     "Pending": Colors.yellow,

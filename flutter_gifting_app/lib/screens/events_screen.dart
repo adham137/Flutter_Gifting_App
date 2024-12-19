@@ -164,7 +164,7 @@ Widget _toggleButton(String text, bool isSelected) {
                 ),
               ).then((_) => _controller.loadEvents()),
               backgroundColor: AppColors.purple,
-              child: Icon(Icons.add , color: AppColors.teal,),
+              child: Icon(Icons.add , color: AppColors.yellow,),
             )
           : null,
     );

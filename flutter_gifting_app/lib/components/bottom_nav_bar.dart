@@ -20,7 +20,7 @@ class BottomNavBar extends StatelessWidget {
         currentIndex: currentIndex, // Highlight the selected tab
         onTap: onTap, // Call the navigation callback
         backgroundColor: AppColors.lightPurple, // Black background
-        selectedItemColor: Colors.yellow, // Highlight selected icon in red
+        selectedItemColor: AppColors.yellow, // Highlight selected icon in red
         unselectedItemColor: Colors.white, // White for unselected icons
         type: BottomNavigationBarType.fixed, // Ensure all icons are visible
         items: [

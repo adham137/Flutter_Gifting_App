@@ -1,6 +1,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_gifting_app/utils/colors.dart';
 import '../utils/image_utils.dart';
 import '../utils/user_manager.dart';
 
@@ -95,12 +96,16 @@ class _ImageHandlerState extends State<ImageHandler> {
       onTap: _pickAndSaveImage,
       child: CircleAvatar(
         radius: widget.radius,
-        backgroundImage: _imageFile != null
-            ? FileImage(_imageFile!)
-            : AssetImage(widget.defaultImagePath) as ImageProvider,
-        child: widget.isEditable && _imageFile == null
-            ? Icon(Icons.add_a_photo, size: widget.radius / 2, color: Colors.white)
-            : null,
+        backgroundColor: AppColors.purple, // Add black background for border effect
+        child: CircleAvatar(
+          radius: widget.radius - 2, // Adjust inner radius for border thickness
+          backgroundImage: _imageFile != null
+              ? FileImage(_imageFile!)
+              : AssetImage(widget.defaultImagePath) as ImageProvider,
+          child: widget.isEditable && _imageFile == null
+              ? Icon(Icons.add_a_photo, size: widget.radius / 2, color: Colors.white)
+              : null,
+        ),
       ),
     );
   }

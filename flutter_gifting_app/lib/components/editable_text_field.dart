@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gifting_app/utils/colors.dart';
+import 'package:flutter_gifting_app/utils/fonts.dart';
 
 class EditableTextField extends StatefulWidget {
   final String initialValue;
@@ -35,7 +37,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -43,7 +45,21 @@ class _EditableTextFieldState extends State<EditableTextField> {
             child: TextFormField(
               controller: _controller,
               enabled: _isEditing,
-              decoration: InputDecoration(labelText: widget.label),
+              decoration: InputDecoration(
+                labelText: widget.label,
+                labelStyle: AppFonts.t4,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+              ),
               onFieldSubmitted: (val) {
                 if (_isEditing) {
                   _saveValue();

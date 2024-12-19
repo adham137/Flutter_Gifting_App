@@ -46,6 +46,12 @@ class AppFonts {
     color: Colors.white,
     height: 1, // minimal vertical spacing
   );
+  static const TextStyle t4 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: Color.fromARGB(255, 85, 82, 82),
+    height: 1, // minimal vertical spacing
+  );
 
 
 }
