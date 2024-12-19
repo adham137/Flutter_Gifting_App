@@ -51,9 +51,9 @@ class HedieatyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'Hediety App',
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-      ),
+      // theme: ThemeData(
+      //   primarySwatch: Colors.purple,
+      // ),
       // Define initial route based on Firebase authentication state
       initialRoute: UserManager.currentUserId == null
           ? '/sign-in'

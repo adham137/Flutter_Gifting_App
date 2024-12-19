@@ -54,6 +54,7 @@ class _HomeScreenViewState extends State<HomeScreenView> {
               Text(
                 'Hediety',
                 style: AppFonts.t1,
+                
               ),
               Text(
                 'فن اختيار الهدايا',

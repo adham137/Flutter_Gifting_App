@@ -39,55 +39,85 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
     super.dispose();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: Text(
-          "My Pledged Gifts",
-          style: AppFonts.header,
+        backgroundColor: AppColors.teal,
+        toolbarHeight: 100,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Center(
+          child: Column(
+            children: [
+              Text(
+                'Pledged Gifts',
+                style: AppFonts.t1,
+                
+              )
+            ],
+          ),
         ),
       ),
-      body: FutureBuilder<void>(
-        future: _loadGiftsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error loading gifts"));
-          }
-
-          return Column(
-            children: [
-              MySearchBar(controller: _controller.searchController),
-              const SizedBox(height: 10),
-              SortOptions(
-                selectedSort: _controller.selectedSort,
-                onSortSelected: (sort) {
-                  _controller.updateSort(sort);
-                },
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: _controller.filteredGifts.isEmpty
-                    ? Center(child: Text("No gifts found"))
-                    : ListView.builder(
-                        itemCount: _controller.filteredGifts.length,
-                        itemBuilder: (context, index) {
-                          final gift = _controller.filteredGifts[index];
-                          return GiftCard(
-                            gift: gift,
-                            callback: () async {
-                              await _controller.loadGifts();
-                            },
-                          );
-                        },
-                      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Container(
+            decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.babyBlue,
+            boxShadow: [
+              BoxShadow(
+                offset: Offset(0, 5),
+                blurRadius: 5,
+                color: Colors.black12,
               ),
             ],
-          );
-        },
+          ),
+          padding: const EdgeInsets.all(16.0),
+          child: FutureBuilder<void>(
+            future: _loadGiftsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error loading gifts"));
+              }
+          
+              return Column(
+                children: [
+                  MySearchBar(controller: _controller.searchController),
+                  const SizedBox(height: 10),
+                  SortOptions(
+                    selectedSort: _controller.selectedSort,
+                    onSortSelected: (sort) {
+                      _controller.updateSort(sort);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: _controller.filteredGifts.isEmpty
+                        ? Center(child: Text("No gifts found"))
+                        : ListView.builder(
+                            itemCount: _controller.filteredGifts.length,
+                            itemBuilder: (context, index) {
+                              final gift = _controller.filteredGifts[index];
+                              return GiftCard(
+                                gift: gift,
+                                callback: () async {
+                                  await _controller.loadGifts();
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

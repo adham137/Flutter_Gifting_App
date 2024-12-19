@@ -42,24 +42,40 @@ class _EventsScreenState extends State<EventsScreen> {
     super.dispose();
   }
 
-  Widget _toggleButton(String text, bool isSelected) {
-    return GestureDetector(
-      onTap: () {
-        _controller.toggleEventView(text == "My Events");
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.background,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          text,
-          style: isSelected ? AppFonts.button : AppFonts.body,
+Widget _toggleButton(String text, bool isSelected) {
+  return GestureDetector(
+    onTap: () {
+      _controller.toggleEventView(text == "My\nEvents");
+    },
+    child: AnimatedContainer(
+      duration: Duration(milliseconds: 600), // Animation duration
+      curve: Curves.easeInOut, // Smooth transition curve
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.purple : Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: text == "Friends\nEvents" ? Radius.circular(20) : Radius.circular(0),
+          bottomLeft: text == "Friends\nEvents" ? Radius.circular(20) : Radius.circular(0),
+          topRight: text == "My\nEvents" ? Radius.circular(20) : Radius.circular(0),
+          bottomRight: text == "My\nEvents" ? Radius.circular(20) : Radius.circular(0),
         ),
       ),
-    );
-  }
+      child: Center(
+        child: AnimatedDefaultTextStyle(
+          duration: Duration(milliseconds: 600), // Smooth text transition
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
+          child: Text(text),
+        ),
+      ),
+    ),
+  );
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,50 +83,76 @@ class _EventsScreenState extends State<EventsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.secondary,
-        elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _toggleButton("Friends Events", !_controller.isMyEventsSelected),
-            SizedBox(width: 8),
-            _toggleButton("My Events", _controller.isMyEventsSelected),
-          ],
+        backgroundColor: AppColors.teal,
+        toolbarHeight: 100,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _toggleButton("Friends\nEvents", !_controller.isMyEventsSelected),
+                  SizedBox(width: 8),
+                  _toggleButton("My\nEvents", _controller.isMyEventsSelected),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            MySearchBar(controller: _controller.searchController),
-            SizedBox(height: 16),
-            SortOptions(
-              selectedSort: _controller.selectedSort,
-              onSortSelected: (sort) => _controller.updateSort(sort),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: events.isEmpty
-                  ? Center(child: Text("No events found", style: AppFonts.body))
-                  : ListView.builder(
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        final event = events[index];
-                        return EventCard(
-                          key: ValueKey(event.eventId),
-                          event: event,
-                          onView: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MyEventPage(event: event),
+        child: Container(
+          
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.babyBlue,
+            boxShadow: [
+              BoxShadow(
+                offset: Offset(0, 5),
+                blurRadius: 5,
+                color: Colors.black12,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              MySearchBar(controller: _controller.searchController),
+              SizedBox(height: 16),
+              SortOptions(
+                selectedSort: _controller.selectedSort,
+                onSortSelected: (sort) => _controller.updateSort(sort),
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: events.isEmpty
+                    ? Center(child: Text("No events found", style: AppFonts.body))
+                    : ListView.builder(
+                        itemCount: events.length,
+                        itemBuilder: (context, index) {
+                          final event = events[index];
+                          return EventCard(
+                            key: ValueKey(event.eventId),
+                            event: event,
+                            onView: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyEventPage(event: event),
+                              ),
                             ),
-                          ),
-                          onDeleteUpdateScreen: () => _controller.loadEvents(),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                            onDeleteUpdateScreen: () => _controller.loadEvents(),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _controller.isMyEventsSelected
@@ -121,8 +163,8 @@ class _EventsScreenState extends State<EventsScreen> {
                   builder: (context) => EventCreationScreen(userId: widget.userId),
                 ),
               ).then((_) => _controller.loadEvents()),
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.add),
+              backgroundColor: AppColors.purple,
+              child: Icon(Icons.add , color: AppColors.teal,),
             )
           : null,
     );

@@ -27,10 +27,10 @@ class AppFonts {
   static const TextStyle t1 = TextStyle(
     fontSize: 48,
     fontWeight: FontWeight.bold,
-    color: AppColors.purple,
+    color: Colors.purple,
   );
   static const TextStyle t2 = TextStyle(
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
