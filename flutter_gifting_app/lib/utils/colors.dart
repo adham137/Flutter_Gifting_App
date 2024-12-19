@@ -10,11 +10,20 @@ class AppColors {
   static const Color badgeUpcoming = Colors.blue;
 
   static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color darkGrey = Color(0xFF757575);
+
+  static const Color purple = Color.fromRGBO(98, 34, 121, 100);
+  static const Color teal = Color.fromRGBO(2, 171, 176, 100);
+  static const Color babyBlue = Color.fromRGBO(184, 226, 242, 100);
+  static const Color lightPurple = Color.fromRGBO(98, 34, 121, 50);
+  static const Color darkGrey = Color.fromRGBO(217, 217, 217, 100);
 
   static const Map<String, Color> statusColors = {
     "Pending": Colors.yellow,
     "Completed": Colors.green,
     "Failed": Colors.red,
+    "Available": Colors.green,
+    "Pledged": Colors.orange,
+    "Upcomming": Colors.green,
+    "Past": Colors.red,
   };
 }

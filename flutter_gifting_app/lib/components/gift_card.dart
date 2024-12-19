@@ -99,25 +99,29 @@ class GiftCard extends StatelessWidget {
                   children: isMyEvent
                       ? [
                           ActionButton(
-                            label: "Delete",
+                            text: "Delete",
                             color: Colors.red,
+                            textStyle: AppFonts.body,
                             onPressed: () => _confirmDelete(context),
                           ),
                           ActionButton(
-                            label: "Edit",
+                            text: "Edit",
                             color: Colors.blue,
+                            textStyle: AppFonts.body,
                             onPressed: () => _onEditPressed(context),
                           ),
                           ActionButton(
-                            label: "View",
+                            text: "View",
                             color: Colors.grey,
+                            textStyle: AppFonts.body,
                             onPressed: () => _onViewPressed(context),
                           ),
                         ]
                       : [
                           ActionButton(
-                            label: gift.status == 'Pledged' ? "Unpledge" : "Pledge",
+                            text: gift.status == 'Pledged' ? "Unpledge" : "Pledge",
                             color: gift.status == 'Pledged' ? Colors.green : Colors.yellow,
+                            textStyle: AppFonts.body,
                             onPressed: () async {
                               if (gift.status == 'Pledged') {
                                 await gift.unpledgeGift();
@@ -128,9 +132,10 @@ class GiftCard extends StatelessWidget {
                             },
                           ),
                           ActionButton(
-                            label: "View",
+                            text: "View",
                             color: Colors.grey,
                             onPressed: () => _onViewPressed(context),
+                            textStyle: AppFonts.body,
                           ),
                         ],
                 ),

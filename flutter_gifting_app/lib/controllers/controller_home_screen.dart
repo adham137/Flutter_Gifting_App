@@ -49,16 +49,17 @@ class HomeController {
     filteredFriends = friends
         .where((friend) => friend.name.toLowerCase().contains(query))
         .toList();
+
     if (selectedSort != null) {
       _applySort();
     }
+
     onUpdate();
   }
 
   void updateSortOption(String? sort) {
     selectedSort = sort;
-    _applySort();
-    onUpdate();
+    _filterAndSortFriends(); // Apply both filtering and sorting together
   }
 
   void _applySort() {
