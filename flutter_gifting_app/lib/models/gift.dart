@@ -97,7 +97,7 @@ class GiftModel {
     if (status == 'Available' && creatorId != currentUserId) {
       status = 'Pledged';
       pledgedBy = currentUserId;
-      await updateGift(giftId, toFirestore());
+      await FirebaseFirestore.instance.collection('gifts').doc(giftId).update(toFirestore());
 
       var pledgerName = await UserModel.getUser(UserManager.currentUserId!).then((user) => user?.name) ?? 'a Friend';
 
@@ -121,7 +121,7 @@ class GiftModel {
     if (status == 'Pledged' && pledgedBy == UserManager.currentUserId) {
       status = 'Available';
       pledgedBy = null;
-      await updateGift(giftId, toFirestore());
+      await FirebaseFirestore.instance.collection('gifts').doc(giftId).update(toFirestore());
     }
 
     var pledgerName = await UserModel.getUser(UserManager.currentUserId!).then((user) => user?.name) ?? 'a Friend';
