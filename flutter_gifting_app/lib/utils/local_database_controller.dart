@@ -67,12 +67,14 @@ class DatabaseController {
   // Upload local data to Firestore
   static Future<void> uploadLocalDataToFirestore() async {
     await uploadLocalEventsToFirestore();
+    await uploadLocalGiftsToFirestore();
   }
 
 
   // Upload local events to Firestore
   static Future<void> syncFirestoreDataToLocal(String userId) async {
     await syncFirestoreEventsToLocal(userId);
+    await syncFirestoreGiftsToLocal(userId);
   }
 
 
@@ -331,5 +333,35 @@ class DatabaseController {
       conflictAlgorithm: ConflictAlgorithm.replace, // Will replace if the giftId exists
     );
   }
+
+
+  // Upload local gifts data to Firestore
+  static Future<void> uploadLocalGiftsToFirestore() async {
+    final db = await database;
+    final maps = await db.query('gifts');
+
+    for (var map in maps) {
+      GiftModel gift = GiftModel.fromMap(map);
+      await FirebaseFirestore.instance
+          .collection('gifts')
+          .doc(gift.giftId)
+          .set(gift.toFirestore());
+    }
+  }
+
+
+  // Sync Firestore gifts data to local SQLite database
+  static Future<void> syncFirestoreGiftsToLocal(String userId) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('gifts')
+        .where('creator_id', isEqualTo: userId)
+        .get();
+
+    for (var doc in querySnapshot.docs) {
+      GiftModel gift = GiftModel.fromFirestore(doc);
+      await upsertGift(gift);
+    }
+  }
+
 
 }
